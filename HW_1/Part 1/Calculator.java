@@ -1,6 +1,8 @@
 // Credits:
 // Part of the code was taken from the Course's website:
 // http://cgi.di.uoa.gr/~thp06/
+// Inspiration was taken from these slides as well:
+// http://www.sci.tamucc.edu/~sking/Courses/Compilers/Slides/grammarsandparsing.pdf
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,112 +26,122 @@ public class Calculator {
         return digit - '0';
     }
 
-    private void digit() throws ParseError, IOException {
+    private int digit() throws ParseError, IOException {
         if (this.lookahead >= '0' && this.lookahead <= '9') {
-            System.out.println(evalDigit(this.lookahead));
+            int temp = evalDigit(this.lookahead);
             consume(this.lookahead);
-            return;
+
+            return temp;
         } else {
-            System.out.println("HERE" + evalDigit(this.lookahead));
             throw new ParseError();
         }
     }
 
-    private void multiple() throws ParseError, IOException {
+    // Handling numbers with multiple digits
+    private int multiple(int res) throws ParseError, IOException {
         if (this.lookahead >= '0' && this.lookahead <= '9') {
-            num();
-            return;
+            res = (res * 10) + num();
+
+            return res;
         } else {
-            return;
+            return res;
         }
     }
 
-    private void num() throws ParseError, IOException {
-        digit();
+    private int num() throws ParseError, IOException {
+        int res = digit();
+        res = multiple(res);
 
-        multiple();
-
-        return;
+        return res;
     }
 
-    private void factor() throws ParseError, IOException {
+    private float factor(float res) throws ParseError, IOException {
         if (this.lookahead == '(') {
-            System.out.println("(");
+            // Handling the (exp) case
             consume('(');
-            exp();
+
+            res = exp(res);
+
             if (lookahead == ')') {
-                System.out.println(")");
                 consume(')');
-                return;
+
+                return res;
             } else {
+                System.out.println("Was expecting ')'");
                 throw new ParseError();
             }
         } else {
-            num();
-            return;
+            res = num();
+
+            return res;
         }
     }
 
-    private void term2() throws ParseError, IOException {
+    private float term2(float res) throws ParseError, IOException {
         if (this.lookahead == '*') {
-            System.out.println("*");
             consume('*');
-            factor();
-            term2();
-            return;
+
+            res *= factor(res);
+            res = term2(res);
+
+            return res;
         } else if (this.lookahead == '/') {
-            System.out.println("/");
             consume('/');
-            factor();
-            term2();
-            return;
+
+            res /= factor(res);
+            res = term2(res);
+
+            return res;
         } else {
-            return;
+            // ε
+            return res;
         }
     }
 
-    private void term() throws ParseError, IOException {
-        factor();
+    private float term(float res) throws ParseError, IOException {
+        res = factor(res);
+        res = term2(res);
 
-        term2();
-
-        return;
+        return res;
     }
 
-    private void exp2() throws ParseError, IOException {
+    private float exp2(float res) throws ParseError, IOException {
         if (this.lookahead == '+') {
-            System.out.println("+");
             consume('+');
-            term();
-            exp2();
-            return;
+
+            res += term(res);
+            res = exp2(res);
+
+            return res;
         } else if (this.lookahead == '-') {
-            System.out.println("-");
             consume('-');
-            term();
-            exp2();
-            return;
+
+            res -= term(res);
+            res = exp2(res);
+
+            return res;
         } else {
-            return;
+            // ε
+            return res;
         }
     }
 
-    private void exp() throws ParseError, IOException {
-        term();
+    private float exp(float res) throws ParseError, IOException {
+        res = term(res);
+        res = exp2(res);
 
-        exp2();
-
-        return;
+        return res;
     }
 
-    private double syn() throws ParseError, IOException {
-        exp();
+    private float syn() throws ParseError, IOException {
+        float res = exp(0);
 
-        return 12;
+        return res;
     }
 
-    public double eval() throws ParseError, IOException {
-        double result = syn();
+    public float eval() throws ParseError, IOException {
+        float result = syn();
+
         if ((this.lookahead != '\n') && (this.lookahead != -1)) {
             throw new ParseError();
         }
