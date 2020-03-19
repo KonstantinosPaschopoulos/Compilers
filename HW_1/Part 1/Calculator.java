@@ -40,7 +40,7 @@ public class Calculator {
     // Handling numbers with multiple digits
     private int multiple(int res) throws ParseError, IOException {
         if (this.lookahead >= '0' && this.lookahead <= '9') {
-            res = (res * 10) + num();
+            res = num(res);
 
             return res;
         } else {
@@ -48,9 +48,12 @@ public class Calculator {
         }
     }
 
-    private int num() throws ParseError, IOException {
+    private int num(int number) throws ParseError, IOException {
         int res = digit();
-        res = multiple(res);
+
+        // 'Building' all the digits of the current number
+        number = (number * 10) + res;
+        res = multiple(number);
 
         return res;
     }
@@ -71,7 +74,8 @@ public class Calculator {
                 throw new ParseError();
             }
         } else {
-            res = num();
+            // Starting with 0 in order not to affect the 'building of the digits'
+            res = num(0);
 
             return res;
         }
