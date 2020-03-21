@@ -58,12 +58,12 @@ public class Calculator {
         return res;
     }
 
-    private float factor(float res) throws ParseError, IOException {
+    private float factor() throws ParseError, IOException {
         if (this.lookahead == '(') {
             // Handling the (exp) case
             consume('(');
 
-            res = exp(res);
+            float res = exp();
 
             if (lookahead == ')') {
                 consume(')');
@@ -75,7 +75,7 @@ public class Calculator {
             }
         } else {
             // Starting with 0 in order not to affect the 'building of the digits'
-            res = num(0);
+            float res = num(0);
 
             return res;
         }
@@ -85,14 +85,14 @@ public class Calculator {
         if (this.lookahead == '*') {
             consume('*');
 
-            res *= factor(res);
+            res *= factor();
             res = term2(res);
 
             return res;
         } else if (this.lookahead == '/') {
             consume('/');
 
-            res /= factor(res);
+            res /= factor();
             res = term2(res);
 
             return res;
@@ -102,8 +102,8 @@ public class Calculator {
         }
     }
 
-    private float term(float res) throws ParseError, IOException {
-        res = factor(res);
+    private float term() throws ParseError, IOException {
+        float res = factor();
         res = term2(res);
 
         return res;
@@ -113,14 +113,14 @@ public class Calculator {
         if (this.lookahead == '+') {
             consume('+');
 
-            res += term(res);
+            res += term();
             res = exp2(res);
 
             return res;
         } else if (this.lookahead == '-') {
             consume('-');
 
-            res -= term(res);
+            res -= term();
             res = exp2(res);
 
             return res;
@@ -130,15 +130,15 @@ public class Calculator {
         }
     }
 
-    private float exp(float res) throws ParseError, IOException {
-        res = term(res);
+    private float exp() throws ParseError, IOException {
+        float res = term();
         res = exp2(res);
 
         return res;
     }
 
     private float syn() throws ParseError, IOException {
-        float res = exp(0);
+        float res = exp();
 
         return res;
     }
