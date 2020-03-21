@@ -1,0 +1,36 @@
+/**
+ *  Package and Import Specifications
+ */
+import java_cup.runtime.*;
+
+/**
+ *  Usercode Components
+ */
+parser code {:
+    // Connect this parser to a scanner!
+    Scanner s;
+    Parser(Scanner s){ this.s=s; }
+:}
+
+/* define how to connect to the scanner! */
+scan with {: return s.next_token(); :};
+
+/**
+ *  Symbol Lists
+ */
+
+/* Terminals (tokens returned by the scanner). */
+terminal            PLUS, LPAREN, RPAREN, LCURLY, RCURLY, COMMA, IF, ELSE, PREFIX, REVERSE, IDENTIFIER;
+terminal String     STRING_LITERAL;
+
+/*  Non terminals */
+non terminal            expr_list;
+non terminal String     expr;
+
+/**
+ *  Precedence Declarations
+ */
+precedence left IF;
+precedence left PLUS;
+precedence left PREFIX;
+precedence left REVERSE;
