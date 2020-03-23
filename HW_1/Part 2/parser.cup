@@ -24,7 +24,7 @@ terminal            PLUS, LPAREN, RPAREN, LCURLY, RCURLY, COMMA, IF, ELSE, PREFI
 terminal String     STRING_LITERAL;
 
 /*  Non terminals */
-non terminal String syn, expr_list, rest_expr, call_list, call, def, def_args, rest_args, def_body, call_args, call_arg, concat, if_stmt;
+non terminal String syn, expr_list, rest_expr, call_list, call, def, def_args, rest_args, def_body, call_args, call_arg, concat, if_stmt, rest_call;
 
 /**
  *  Precedence Declarations
@@ -76,8 +76,11 @@ call        ::= IDENTIFIER LPAREN call_args RPAREN
             ;
 
 /* The arguments for function calls */
-call_args   ::= call_arg call_args
-            |   COMMA call_arg call_args
+call_args   ::= call_arg rest_call
+            ;
+
+rest_call   ::= COMMA call_arg rest_call
+            |
             ;
 
 /* Grammar for each argument when calling a function */
