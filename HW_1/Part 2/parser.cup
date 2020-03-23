@@ -24,8 +24,9 @@ terminal            PLUS, LPAREN, RPAREN, LCURLY, RCURLY, COMMA, IF, ELSE, PREFI
 terminal String     STRING_LITERAL;
 
 /*  Non terminals */
-non terminal String syn, expr_list, rest_expr, call_list, call, def, def_args, rest_args, def_body, call_args, call_arg, concat, if_stmt, rest_call;
-non terminal        prefix_stmt;
+non terminal String syn, expr_list, rest_expr, call_list, call, def, def_args, rest_args, call_args, call_arg, concat, if_stmt, rest_call;
+non terminal String body, body_concat, body_func, body_if;
+non terminal        prefix_stmt, body_prefix;
 
 /**
  *  Precedence Declarations
@@ -49,11 +50,11 @@ rest_expr   ::= def rest_expr
             |   call_list
             ;
 
-def         ::= IDENTIFIER LPAREN def_args RPAREN LCURLY def_body RCURLY
-            |   IDENTIFIER LPAREN RPAREN LCURLY def_body RCURLY
+def         ::= IDENTIFIER LPAREN def_args RPAREN LCURLY body RCURLY
+            |   IDENTIFIER LPAREN RPAREN LCURLY body RCURLY
             ;
 
-/* The arguments for function definitions (when in fact the function has arguments) */
+/* The arguments of function definitions (when in fact the function has arguments) */
 def_args    ::= IDENTIFIER rest_args
             ;
 
@@ -61,13 +62,33 @@ rest_args   ::= COMMA IDENTIFIER rest_args
             |
             ;
 
-/* The body for the function definitions */
-def_body    ::= IDENTIFIER
-            |   STRING_LITERAL
-            |
+/* Grammar for everything that can be found in the body of a function */
+body        ::= STRING_LITERAL
+            |   body_if
+            |   body_func
+            |   body_concat
+            |   REVERSE STRING_LITERAL
+            |   REVERSE IDENTIFIER
+            |   IDENTIFIER
             ;
 
-/* Can either call a function or use an if statement inside the "main" */
+/* Calling functions inside another function */
+body_func   ::= IDENTIFIER LPAREN body RPAREN
+            |   IDENTIFIER LPAREN RPAREN
+            ;
+
+/* Supporting concatenation */
+body_concat ::= body PLUS body
+            ;
+
+body_if     ::= IF LPAREN body_prefix RPAREN body ELSE body
+            ;
+
+/* Supporting prefix which is the only logical expression */
+body_prefix ::= body PREFIX body
+            ;
+
+/* Can call a function and use an if statement inside the "main" */
 call_list   ::= call call_list
             |   if_stmt call_list
             |
