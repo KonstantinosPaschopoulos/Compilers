@@ -25,11 +25,12 @@ terminal String     STRING_LITERAL;
 
 /*  Non terminals */
 non terminal String syn, expr_list, rest_expr, call_list, call, def, def_args, rest_args, def_body, call_args, call_arg, concat, if_stmt, rest_call;
+non terminal        prefix_stmt;
 
 /**
  *  Precedence Declarations
  */
-precedence left IF;
+precedence left IF, ELSE;
 precedence left PLUS;
 precedence left PREFIX;
 precedence left REVERSE;
@@ -66,8 +67,9 @@ def_body    ::= IDENTIFIER
             |
             ;
 
-/* Function calls */
+/* Can either call a function or use an if statement inside the "main" */
 call_list   ::= call call_list
+            |   if_stmt call_list
             |
             ;
 
@@ -84,14 +86,19 @@ rest_call   ::= COMMA call_arg rest_call
             ;
 
 /* Grammar for each argument when calling a function */
-call_arg    ::= STRING_LITERAL concat
-            |   if_stmt concat
-            |   call concat
+call_arg    ::= STRING_LITERAL
+            |   if_stmt
+            |   call
+            |   concat
             ;
 
-concat      ::= PLUS call_arg
-            |
+/* Supporting concatenation */
+concat      ::= call_arg PLUS call_arg
             ;
 
-if_stmt     ::= IF LPAREN IDENTIFIER RPAREN IDENTIFIER ELSE IDENTIFIER
+if_stmt     ::= IF LPAREN prefix_stmt RPAREN ELSE STRING_LITERAL
+            ;
+
+/* Supporting prefix which is the only logical expression */
+prefix_stmt ::= STRING_LITERAL PREFIX STRING_LITERAL
             ;

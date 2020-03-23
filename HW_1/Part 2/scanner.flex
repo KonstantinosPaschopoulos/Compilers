@@ -83,9 +83,9 @@ Identifier = [:jletter:] [:jletterdigit:]*
  "{"      { return symbol(sym.LCURLY); }
  "}"      { return symbol(sym.RCURLY); }
  ","      { return symbol(sym.COMMA); }
- "if"      { return symbol(sym.IF); }
- "else"      { return symbol(sym.ELSE); }
- "prefix"      { return symbol(sym.PREFIX); }
+ "if"           { return symbol(sym.IF); }
+ "else"         { return symbol(sym.ELSE); }
+ "prefix"       { return symbol(sym.PREFIX); }
  "reverse"      { return symbol(sym.REVERSE); }
  /* If the scanner matches a double quote in state YYINITIAL we have recognised the start of a string literal */
  \"       { stringBuffer.setLength(0); yybegin(STRING); }
