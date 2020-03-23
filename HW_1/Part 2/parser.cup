@@ -24,7 +24,7 @@ terminal            PLUS, LPAREN, RPAREN, LCURLY, RCURLY, COMMA, IF, ELSE, PREFI
 terminal String     STRING_LITERAL;
 
 /*  Non terminals */
-non terminal String syn, expr_list, def_list, call_list, call, def, def_args, def_body, call_args, call_arg, concat, if_stmt;
+non terminal String syn, expr_list, rest_expr, call_list, call, def, def_args, rest_args, def_body, call_args, call_arg, concat, if_stmt;
 
 /**
  *  Precedence Declarations
@@ -37,25 +37,27 @@ precedence left REVERSE;
 /**
  *  The Grammar Rules
  */
-
 syn         ::= expr_list
             ;
 
-expr_list   ::= def_list call_list
+/* Has to declare at least one function before moving on to calling functions or declaring more functions */
+expr_list   ::= def rest_expr
             ;
 
-/* List of function definitions */
-def_list    ::= def_list def
-            |
+rest_expr   ::= def rest_expr
+            |   call_list
             ;
 
 def         ::= IDENTIFIER LPAREN def_args RPAREN LCURLY def_body RCURLY
             |   IDENTIFIER LPAREN RPAREN LCURLY def_body RCURLY
             ;
 
-/* The arguments for function definitions */
-def_args    ::= IDENTIFIER def_args
-            |   COMMA IDENTIFIER def_args 
+/* The arguments for function definitions (when in fact the function has arguments) */
+def_args    ::= IDENTIFIER rest_args
+            ;
+
+rest_args   ::= COMMA IDENTIFIER rest_args
+            |
             ;
 
 /* The body for the function definitions */
@@ -64,8 +66,8 @@ def_body    ::= IDENTIFIER
             |
             ;
 
-/* List of function calls */
-call_list   ::= call_list call
+/* Function calls */
+call_list   ::= call call_list
             |
             ;
 
