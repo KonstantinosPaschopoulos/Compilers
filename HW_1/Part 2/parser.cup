@@ -90,15 +90,16 @@ call_arg    ::= STRING_LITERAL
             |   if_stmt
             |   call
             |   concat
+            |   REVERSE STRING_LITERAL
             ;
 
 /* Supporting concatenation */
 concat      ::= call_arg PLUS call_arg
             ;
 
-if_stmt     ::= IF LPAREN prefix_stmt RPAREN ELSE STRING_LITERAL
+if_stmt     ::= IF LPAREN prefix_stmt RPAREN call_arg ELSE call_arg
             ;
 
 /* Supporting prefix which is the only logical expression */
-prefix_stmt ::= STRING_LITERAL PREFIX STRING_LITERAL
+prefix_stmt ::= call_arg PREFIX call_arg
             ;
