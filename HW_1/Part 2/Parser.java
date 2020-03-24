@@ -582,7 +582,7 @@ class CUP$Parser$actions {
 		int b2left = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
 		int b2right = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
 		String b2 = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = b1 + ".startsWith(" + b2 + ")"; 
+		 RESULT = b2 + ".startsWith(" + b1 + ")"; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("body_prefix",20, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -795,7 +795,7 @@ class CUP$Parser$actions {
 		int c2left = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
 		int c2right = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
 		String c2 = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = c1 + ".startsWith(" + c2 + ")"; 
+		 RESULT = c2 + ".startsWith(" + c1 + ")"; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("prefix_stmt",19, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

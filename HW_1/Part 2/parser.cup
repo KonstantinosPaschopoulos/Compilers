@@ -91,7 +91,7 @@ body_if     ::= IF LPAREN body_prefix:bool RPAREN body:b1 ELSE body:b2      {: R
             ;
 
 /* Prefix which is the only logical expression */
-body_prefix ::= body:b1 PREFIX body:b2                  {: RESULT = b1 + ".startsWith(" + b2 + ")"; :}
+body_prefix ::= body:b1 PREFIX body:b2                  {: RESULT = b2 + ".startsWith(" + b1 + ")"; :}
             ;
 
 /* Can call a function and use an if statement inside the "main" */
@@ -128,5 +128,5 @@ if_stmt     ::= IF LPAREN prefix_stmt:bool RPAREN call_arg:c1 ELSE call_arg:c2  
             ;
 
 /* Supporting prefix which is the only logical expression */
-prefix_stmt ::= call_arg:c1 PREFIX call_arg:c2          {: RESULT = c1 + ".startsWith(" + c2 + ")"; :}
+prefix_stmt ::= call_arg:c1 PREFIX call_arg:c2          {: RESULT = c2 + ".startsWith(" + c1 + ")"; :}
             ;
