@@ -32,8 +32,8 @@ non terminal String prefix_stmt, body_prefix;
  *  Precedence Declarations
  */
 precedence left IF, ELSE;
-precedence left PLUS;
 precedence left PREFIX;
+precedence left PLUS;
 precedence left REVERSE;
 
 /**
@@ -95,38 +95,38 @@ body_prefix ::= body:b1 PREFIX body:b2                  {: RESULT = b1 + ".start
             ;
 
 /* Can call a function and use an if statement inside the "main" */
-call_list   ::= call call_list
-            |   if_stmt call_list
-            |
+call_list   ::= call:c call_list:cl                     {: RESULT = "System.out.println(" + c + ");\n" + cl; :}
+            |   if_stmt:if_s call_list:cl               {: RESULT = "System.out.println(" + if_s + ");\n" + cl; :}
+            |                                           {: RESULT = ""; :}
             ;
 
-call        ::= IDENTIFIER LPAREN call_args RPAREN
-            |   IDENTIFIER LPAREN RPAREN
+call        ::= IDENTIFIER:id LPAREN call_args:ca RPAREN    {: RESULT = id + "(" + ca + ")"; :}
+            |   IDENTIFIER:id LPAREN RPAREN                 {: RESULT = id + "()"; :}
             ;
 
 /* The arguments for function calls */
-call_args   ::= call_arg rest_call
+call_args   ::= call_arg:ca rest_call:re                {: RESULT = ca + re; :}
             ;
 
-rest_call   ::= COMMA call_arg rest_call
-            |
+rest_call   ::= COMMA call_arg:ca rest_call:re          {: RESULT = ", " + ca + re; :}
+            |                                           {: RESULT = ""; :}
             ;
 
 /* Grammar for each argument when calling a function */
-call_arg    ::= STRING_LITERAL
-            |   if_stmt
-            |   call
-            |   concat
-            |   REVERSE STRING_LITERAL
+call_arg    ::= STRING_LITERAL:str                      {: RESULT = str; :}
+            |   if_stmt:ifs                             {: RESULT = ifs; :}
+            |   call:cal                                {: RESULT = cal; :}
+            |   concat:con                              {: RESULT = con; :}
+            |   REVERSE STRING_LITERAL:str              {: RESULT = "new StringBuffer(" + str + ").reverse().toString()"; :}
             ;
 
 /* Supporting concatenation */
-concat      ::= call_arg PLUS call_arg
+concat      ::= call_arg:c1 PLUS call_arg:c2            {: RESULT = c1 + " + " + c2; :}
             ;
 
-if_stmt     ::= IF LPAREN prefix_stmt RPAREN call_arg ELSE call_arg
+if_stmt     ::= IF LPAREN prefix_stmt:bool RPAREN call_arg:c1 ELSE call_arg:c2      {: RESULT = "(" + bool + ") ? " + c1 + " : " + c2; :}
             ;
 
 /* Supporting prefix which is the only logical expression */
-prefix_stmt ::= call_arg PREFIX call_arg
+prefix_stmt ::= call_arg:c1 PREFIX call_arg:c2          {: RESULT = c1 + ".startsWith(" + c2 + ")"; :}
             ;

@@ -591,7 +591,13 @@ class CUP$Parser$actions {
           case 25: // call_list ::= call call_list 
             {
               String RESULT =null;
-
+		int cleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).left;
+		int cright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).right;
+		String c = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
+		int clleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int clright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String cl = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = "System.out.println(" + c + ");\n" + cl; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("call_list",3, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -600,7 +606,13 @@ class CUP$Parser$actions {
           case 26: // call_list ::= if_stmt call_list 
             {
               String RESULT =null;
-
+		int if_sleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).left;
+		int if_sright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).right;
+		String if_s = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
+		int clleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int clright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String cl = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = "System.out.println(" + if_s + ");\n" + cl; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("call_list",3, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -609,7 +621,7 @@ class CUP$Parser$actions {
           case 27: // call_list ::= 
             {
               String RESULT =null;
-
+		 RESULT = ""; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("call_list",3, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -618,7 +630,13 @@ class CUP$Parser$actions {
           case 28: // call ::= IDENTIFIER LPAREN call_args RPAREN 
             {
               String RESULT =null;
-
+		int idleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)).left;
+		int idright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)).right;
+		String id = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-3)).value;
+		int caleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).left;
+		int caright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).right;
+		String ca = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
+		 RESULT = id + "(" + ca + ")"; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("call",4, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -627,7 +645,10 @@ class CUP$Parser$actions {
           case 29: // call ::= IDENTIFIER LPAREN RPAREN 
             {
               String RESULT =null;
-
+		int idleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).left;
+		int idright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).right;
+		String id = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
+		 RESULT = id + "()"; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("call",4, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -636,7 +657,13 @@ class CUP$Parser$actions {
           case 30: // call_args ::= call_arg rest_call 
             {
               String RESULT =null;
-
+		int caleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).left;
+		int caright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).right;
+		String ca = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
+		int releft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int reright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String re = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = ca + re; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("call_args",8, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -645,7 +672,13 @@ class CUP$Parser$actions {
           case 31: // rest_call ::= COMMA call_arg rest_call 
             {
               String RESULT =null;
-
+		int caleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).left;
+		int caright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).right;
+		String ca = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
+		int releft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int reright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String re = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = ", " + ca + re; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("rest_call",12, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -654,7 +687,7 @@ class CUP$Parser$actions {
           case 32: // rest_call ::= 
             {
               String RESULT =null;
-
+		 RESULT = ""; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("rest_call",12, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -663,7 +696,10 @@ class CUP$Parser$actions {
           case 33: // call_arg ::= STRING_LITERAL 
             {
               String RESULT =null;
-
+		int strleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int strright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String str = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = str; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("call_arg",9, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -672,7 +708,10 @@ class CUP$Parser$actions {
           case 34: // call_arg ::= if_stmt 
             {
               String RESULT =null;
-
+		int ifsleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int ifsright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String ifs = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = ifs; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("call_arg",9, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -681,7 +720,10 @@ class CUP$Parser$actions {
           case 35: // call_arg ::= call 
             {
               String RESULT =null;
-
+		int calleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int calright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String cal = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = cal; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("call_arg",9, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -690,7 +732,10 @@ class CUP$Parser$actions {
           case 36: // call_arg ::= concat 
             {
               String RESULT =null;
-
+		int conleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int conright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String con = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = con; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("call_arg",9, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -699,7 +744,10 @@ class CUP$Parser$actions {
           case 37: // call_arg ::= REVERSE STRING_LITERAL 
             {
               String RESULT =null;
-
+		int strleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int strright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String str = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = "new StringBuffer(" + str + ").reverse().toString()"; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("call_arg",9, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -708,7 +756,13 @@ class CUP$Parser$actions {
           case 38: // concat ::= call_arg PLUS call_arg 
             {
               String RESULT =null;
-
+		int c1left = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).left;
+		int c1right = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).right;
+		String c1 = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
+		int c2left = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int c2right = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String c2 = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = c1 + " + " + c2; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("concat",10, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -717,7 +771,16 @@ class CUP$Parser$actions {
           case 39: // if_stmt ::= IF LPAREN prefix_stmt RPAREN call_arg ELSE call_arg 
             {
               String RESULT =null;
-
+		int boolleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)).left;
+		int boolright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)).right;
+		String bool = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-4)).value;
+		int c1left = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).left;
+		int c1right = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).right;
+		String c1 = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
+		int c2left = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int c2right = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String c2 = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = "(" + bool + ") ? " + c1 + " : " + c2; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("if_stmt",11, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-6)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -726,7 +789,13 @@ class CUP$Parser$actions {
           case 40: // prefix_stmt ::= call_arg PREFIX call_arg 
             {
               String RESULT =null;
-
+		int c1left = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).left;
+		int c1right = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).right;
+		String c1 = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
+		int c2left = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int c2right = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String c2 = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = c1 + ".startsWith(" + c2 + ")"; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("prefix_stmt",19, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

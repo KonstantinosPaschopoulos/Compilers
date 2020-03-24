@@ -859,7 +859,7 @@ class Scanner implements java_cup.runtime.Scanner {
             }
           case 30: break;
           case 10: 
-            { stringBuffer.setLength(0); yybegin(STRING);
+            { stringBuffer.setLength(0); stringBuffer.append('\"'); yybegin(STRING);
             }
           case 31: break;
           case 11: 
@@ -867,7 +867,8 @@ class Scanner implements java_cup.runtime.Scanner {
             }
           case 32: break;
           case 12: 
-            { yybegin(YYINITIAL);
+            { stringBuffer.append('\"');
+                                   yybegin(YYINITIAL);
                                    return symbol(sym.STRING_LITERAL,
                                    stringBuffer.toString());
             }

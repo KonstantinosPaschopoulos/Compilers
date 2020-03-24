@@ -88,14 +88,15 @@ Identifier = [:jletter:] [:jletterdigit:]*
  "prefix"       { return symbol(sym.PREFIX); }
  "reverse"      { return symbol(sym.REVERSE); }
  /* If the scanner matches a double quote in state YYINITIAL we have recognised the start of a string literal */
- \"       { stringBuffer.setLength(0); yybegin(STRING); }
+ \"       { stringBuffer.setLength(0); stringBuffer.append('\"'); yybegin(STRING); }
  {Identifier}      { return symbol(sym.IDENTIFIER, yytext()); }
  {WhiteSpace}      { /* ignore */ }
 }
 
 /* The STRING lexical state */
 <STRING> {
-  \"                             { yybegin(YYINITIAL);
+  \"                             { stringBuffer.append('\"');
+                                   yybegin(YYINITIAL);
                                    return symbol(sym.STRING_LITERAL,
                                    stringBuffer.toString()); }
   [^\n\r\"\\]+                   { stringBuffer.append( yytext() ); }
