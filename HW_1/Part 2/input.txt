@@ -1,20 +1,15 @@
-   name() {
+    name()  {
         "John"
     }
 
-    repeat(x) {
-        x + x
+    surname() {
+        "Doe"
     }
 
-    cond_repeat(c, x) {
-        if (c prefix "yes")
-            if("yes" prefix c)
-                repeat(x,x, "yeet")
-            else
-                x
-        else
-            x
+    fullname(first_name, sep, last_name) {
+        first_name + sep + last_name
     }
 
-    cond_repeat("yes", name())
-    cond_repeat("no", "Jane", if("yes" prefix "yes") func() else "yeet")
+    name()
+    surname()
+    fullname(name(), " ", surname())
