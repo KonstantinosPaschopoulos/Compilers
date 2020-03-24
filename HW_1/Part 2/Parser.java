@@ -256,7 +256,7 @@ class CUP$Parser$actions {
 		int eleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
 		int eright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
 		String e = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 System.out.println("public class main {\n" + e + "}"); 
+		 System.out.println("public class Main {\n" + e + "}"); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("syn",0, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -441,7 +441,10 @@ class CUP$Parser$actions {
           case 14: // body ::= REVERSE STRING_LITERAL 
             {
               String RESULT =null;
-
+		int strleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int strright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String str = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = "new StringBuffer(" + str + ").reverse().toString()"; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("body",13, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -450,7 +453,10 @@ class CUP$Parser$actions {
           case 15: // body ::= REVERSE IDENTIFIER 
             {
               String RESULT =null;
-
+		int idleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int idright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String id = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = "new StringBuffer(" + id + ").reverse().toString()"; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("body",13, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -471,7 +477,13 @@ class CUP$Parser$actions {
           case 17: // body_func ::= IDENTIFIER LPAREN body_args RPAREN 
             {
               String RESULT =null;
-
+		int idleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)).left;
+		int idright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)).right;
+		String id = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-3)).value;
+		int argleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).left;
+		int argright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).right;
+		String arg = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
+		 RESULT = id + "(" + arg + ")"; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("body_func",15, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -480,7 +492,10 @@ class CUP$Parser$actions {
           case 18: // body_func ::= IDENTIFIER LPAREN RPAREN 
             {
               String RESULT =null;
-
+		int idleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).left;
+		int idright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).right;
+		String id = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
+		 RESULT = id + "(" + ")"; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("body_func",15, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -489,7 +504,13 @@ class CUP$Parser$actions {
           case 19: // body_args ::= body re_bod_args 
             {
               String RESULT =null;
-
+		int bleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).left;
+		int bright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).right;
+		String b = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
+		int releft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int reright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String re = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = b + re; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("body_args",18, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -498,7 +519,13 @@ class CUP$Parser$actions {
           case 20: // re_bod_args ::= COMMA body re_bod_args 
             {
               String RESULT =null;
-
+		int bleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).left;
+		int bright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).right;
+		String b = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
+		int releft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int reright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String re = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = ", " + b + re; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("re_bod_args",17, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -507,7 +534,7 @@ class CUP$Parser$actions {
           case 21: // re_bod_args ::= 
             {
               String RESULT =null;
-
+		 RESULT = ""; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("re_bod_args",17, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -516,7 +543,13 @@ class CUP$Parser$actions {
           case 22: // body_concat ::= body PLUS body 
             {
               String RESULT =null;
-
+		int b1left = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).left;
+		int b1right = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).right;
+		String b1 = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
+		int b2left = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int b2right = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String b2 = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = b1 + " + " + b2; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("body_concat",14, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -525,7 +558,16 @@ class CUP$Parser$actions {
           case 23: // body_if ::= IF LPAREN body_prefix RPAREN body ELSE body 
             {
               String RESULT =null;
-
+		int boolleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)).left;
+		int boolright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)).right;
+		String bool = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-4)).value;
+		int b1left = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).left;
+		int b1right = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).right;
+		String b1 = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
+		int b2left = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int b2right = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String b2 = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = "(" + bool + ") ? " + b1 + " : " + b2; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("body_if",16, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-6)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -534,7 +576,13 @@ class CUP$Parser$actions {
           case 24: // body_prefix ::= body PREFIX body 
             {
               String RESULT =null;
-
+		int b1left = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).left;
+		int b1right = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).right;
+		String b1 = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
+		int b2left = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
+		int b2right = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
+		String b2 = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = b1 + ".startsWith(" + b2 + ")"; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("body_prefix",20, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
