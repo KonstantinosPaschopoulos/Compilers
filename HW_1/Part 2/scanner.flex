@@ -89,7 +89,7 @@ Identifier = [:jletter:] [:jletterdigit:]*
  "reverse"      { return symbol(sym.REVERSE); }
  /* If the scanner matches a double quote in state YYINITIAL we have recognised the start of a string literal */
  \"       { stringBuffer.setLength(0); yybegin(STRING); }
- {Identifier}      { return symbol(sym.IDENTIFIER); }
+ {Identifier}      { return symbol(sym.IDENTIFIER, yytext()); }
  {WhiteSpace}      { /* ignore */ }
 }
 
