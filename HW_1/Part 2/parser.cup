@@ -46,6 +46,7 @@ syn         ::= expr_list:e     {: System.out.println("public class Main {\n" + 
 expr_list   ::= def:d rest_expr:re      {: RESULT = d + re; :}
             ;
 
+// TODO make decl be empty and calls not
 rest_expr   ::= def:d rest_expr:re      {: RESULT = d + re; :}
             |   call_list:cl            {: RESULT = "public static void main(String[] args) {\n" + cl + "}\n"; :}
             ;
@@ -67,8 +68,8 @@ body        ::= STRING_LITERAL:str                      {: RESULT = str; :} /*"\
             |   body_if:iff                             {: RESULT = iff; :}
             |   body_func:func                          {: RESULT = func; :}
             |   body_concat:con                         {: RESULT = con; :}
-            |   REVERSE STRING_LITERAL:str              {: RESULT = "new StringBuffer(" + str + ").reverse().toString()"; :}
-            |   REVERSE IDENTIFIER:id                   {: RESULT = "new StringBuffer(" + id + ").reverse().toString()"; :}
+            |   REVERSE body:b                          {: RESULT = "new StringBuffer(" + b + ").reverse().toString()"; :}
+            // |   REVERSE IDENTIFIER:id                   {: RESULT = "new StringBuffer(" + id + ").reverse().toString()"; :}
             |   IDENTIFIER:id                           {: RESULT = id; :}
             ;
 
@@ -94,10 +95,17 @@ body_if     ::= IF LPAREN body_prefix:bool RPAREN body:b1 ELSE body:b2      {: R
 body_prefix ::= body:b1 PREFIX body:b2                  {: RESULT = b2 + ".startsWith(" + b1 + ")"; :}
             ;
 
-/* Can call a function and use an if statement inside the "main" */
-call_list   ::= call:c call_list:cl                     {: RESULT = "System.out.println(" + c + ");\n" + cl; :}
-            |   if_stmt:if_s call_list:cl               {: RESULT = "System.out.println(" + if_s + ");\n" + cl; :}
-            |                                           {: RESULT = ""; :}
+/* The list of outputs inside the main */
+call_list   ::= call_arg:c call_list:cl                     {: RESULT = "System.out.println(" + c + ");\n" + cl; :}
+            |                                               {: RESULT = ""; :}
+            ;
+
+/* Everything that can be inside the main or inside the arguments of a function call */
+call_arg    ::= STRING_LITERAL:str                      {: RESULT = str; :}
+            |   if_stmt:ifs                             {: RESULT = ifs; :}
+            |   call:cal                                {: RESULT = cal; :}
+            |   concat:con                              {: RESULT = con; :}
+            |   REVERSE call_arg:ca                     {: RESULT = "new StringBuffer(" + ca + ").reverse().toString()"; :}
             ;
 
 call        ::= IDENTIFIER:id LPAREN call_args:ca RPAREN    {: RESULT = id + "(" + ca + ")"; :}
@@ -110,14 +118,6 @@ call_args   ::= call_arg:ca rest_call:re                {: RESULT = ca + re; :}
 
 rest_call   ::= COMMA call_arg:ca rest_call:re          {: RESULT = ", " + ca + re; :}
             |                                           {: RESULT = ""; :}
-            ;
-
-/* Grammar for each argument when calling a function */
-call_arg    ::= STRING_LITERAL:str                      {: RESULT = str; :}
-            |   if_stmt:ifs                             {: RESULT = ifs; :}
-            |   call:cal                                {: RESULT = cal; :}
-            |   concat:con                              {: RESULT = con; :}
-            |   REVERSE STRING_LITERAL:str              {: RESULT = "new StringBuffer(" + str + ").reverse().toString()"; :}
             ;
 
 /* Supporting concatenation */
