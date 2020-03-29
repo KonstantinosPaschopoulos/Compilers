@@ -43,11 +43,11 @@ syn         ::= expr_list:e     {: System.out.println("public class Main {\n" + 
             ;
 
 /* Has to declare at least one function before moving on to calling functions or declaring more functions */
-expr_list   ::= def:d rest_expr:re      {: RESULT = re + d; :}
+expr_list   ::= def:d rest_expr:re      {: RESULT = d + re; :}
             ;
 
-rest_expr   ::= def:d rest_expr:re      {: RESULT = re + d; :}
-            |   call_list:cl            {: RESULT = "public static void main(String[] args) {\n" + cl + "\n}\n"; :}
+rest_expr   ::= def:d rest_expr:re      {: RESULT = d + re; :}
+            |   call_list:cl            {: RESULT = "public static void main(String[] args) {\n" + cl + "}\n"; :}
             ;
 
 def         ::= IDENTIFIER:id LPAREN def_args:ar RPAREN LCURLY body:b RCURLY    {: RESULT = "public static String " + id + "(" + ar + ") {\n" + "return " + b + ";" + "\n}\n"; :}
@@ -87,7 +87,7 @@ re_bod_args ::= COMMA body:b re_bod_args:re             {: RESULT = ", " + b + r
 body_concat ::= body:b1 PLUS body:b2                    {: RESULT = b1 + " + " + b2; :}
             ;
 
-body_if     ::= IF LPAREN body_prefix:bool RPAREN body:b1 ELSE body:b2      {: RESULT = "(" + bool + ") ? " + b1 + " : " + b2; :}
+body_if     ::= IF LPAREN body_prefix:bool RPAREN body:b1 ELSE body:b2      {: RESULT = "(" + bool + " ? " + b1 + " : " + b2 + ")"; :}
             ;
 
 /* Prefix which is the only logical expression */
@@ -124,7 +124,7 @@ call_arg    ::= STRING_LITERAL:str                      {: RESULT = str; :}
 concat      ::= call_arg:c1 PLUS call_arg:c2            {: RESULT = c1 + " + " + c2; :}
             ;
 
-if_stmt     ::= IF LPAREN prefix_stmt:bool RPAREN call_arg:c1 ELSE call_arg:c2      {: RESULT = "(" + bool + ") ? " + c1 + " : " + c2; :}
+if_stmt     ::= IF LPAREN prefix_stmt:bool RPAREN call_arg:c1 ELSE call_arg:c2      {: RESULT = "(" + bool + " ? " + c1 + " : " + c2 + ")"; :}
             ;
 
 /* Supporting prefix which is the only logical expression */
