@@ -24,7 +24,7 @@ terminal String     PLUS, LPAREN, RPAREN, LCURLY, RCURLY, COMMA, IF, ELSE, PREFI
 terminal String     STRING_LITERAL;
 
 /*  Non terminals */
-non terminal String syn, expr_list, rest_expr, call_list, call, def, def_args, rest_args, call_args, call_stm, concat, if_stmt, rest_call;
+non terminal String syn, expr_list, call_list, call, def, def_args, rest_args, call_args, call_stm, concat, if_stmt, rest_call;
 non terminal String body, body_concat, body_func, body_if, re_bod_args, body_args;
 non terminal String prefix_stmt, body_prefix;
 
@@ -42,12 +42,7 @@ precedence left REVERSE;
 syn         ::= expr_list:e     {: System.out.println("public class Main {\n" + e + "}"); :}
             ;
 
-/* Has to declare at least one function before moving on to calling functions or declaring more functions */
-expr_list   ::= def:d rest_expr:re      {: RESULT = d + re; :}
-            ;
-
-// TODO make decl be empty and calls not
-rest_expr   ::= def:d rest_expr:re      {: RESULT = d + re; :}
+expr_list   ::= def:d expr_list:re      {: RESULT = d + re; :}
             |   call_list:cl            {: RESULT = "public static void main(String[] args) {\n" + cl + "}\n"; :}
             ;
 
