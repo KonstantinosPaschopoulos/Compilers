@@ -24,7 +24,7 @@ terminal String     PLUS, LPAREN, RPAREN, LCURLY, RCURLY, COMMA, IF, ELSE, PREFI
 terminal String     STRING_LITERAL;
 
 /*  Non terminals */
-non terminal String syn, expr_list, rest_expr, call_list, call, def, def_args, rest_args, call_args, call_arg, concat, if_stmt, rest_call;
+non terminal String syn, expr_list, rest_expr, call_list, call, def, def_args, rest_args, call_args, call_stm, concat, if_stmt, rest_call;
 non terminal String body, body_concat, body_func, body_if, re_bod_args, body_args;
 non terminal String prefix_stmt, body_prefix;
 
@@ -69,7 +69,6 @@ body        ::= STRING_LITERAL:str                      {: RESULT = str; :} /*"\
             |   body_func:func                          {: RESULT = func; :}
             |   body_concat:con                         {: RESULT = con; :}
             |   REVERSE body:b                          {: RESULT = "new StringBuffer(" + b + ").reverse().toString()"; :}
-            // |   REVERSE IDENTIFIER:id                   {: RESULT = "new StringBuffer(" + id + ").reverse().toString()"; :}
             |   IDENTIFIER:id                           {: RESULT = id; :}
             ;
 
@@ -96,16 +95,16 @@ body_prefix ::= body:b1 PREFIX body:b2                  {: RESULT = b2 + ".start
             ;
 
 /* The list of outputs inside the main */
-call_list   ::= call_arg:c call_list:cl                     {: RESULT = "System.out.println(" + c + ");\n" + cl; :}
+call_list   ::= call_stm:c call_list:cl                     {: RESULT = "System.out.println(" + c + ");\n" + cl; :}
             |                                               {: RESULT = ""; :}
             ;
 
 /* Everything that can be inside the main or inside the arguments of a function call */
-call_arg    ::= STRING_LITERAL:str                      {: RESULT = str; :}
+call_stm    ::= STRING_LITERAL:str                      {: RESULT = str; :}
             |   if_stmt:ifs                             {: RESULT = ifs; :}
             |   call:cal                                {: RESULT = cal; :}
             |   concat:con                              {: RESULT = con; :}
-            |   REVERSE call_arg:ca                     {: RESULT = "new StringBuffer(" + ca + ").reverse().toString()"; :}
+            |   REVERSE call_stm:ca                     {: RESULT = "new StringBuffer(" + ca + ").reverse().toString()"; :}
             ;
 
 call        ::= IDENTIFIER:id LPAREN call_args:ca RPAREN    {: RESULT = id + "(" + ca + ")"; :}
@@ -113,20 +112,20 @@ call        ::= IDENTIFIER:id LPAREN call_args:ca RPAREN    {: RESULT = id + "("
             ;
 
 /* The arguments for function calls */
-call_args   ::= call_arg:ca rest_call:re                {: RESULT = ca + re; :}
+call_args   ::= call_stm:ca rest_call:re                {: RESULT = ca + re; :}
             ;
 
-rest_call   ::= COMMA call_arg:ca rest_call:re          {: RESULT = ", " + ca + re; :}
+rest_call   ::= COMMA call_stm:ca rest_call:re          {: RESULT = ", " + ca + re; :}
             |                                           {: RESULT = ""; :}
             ;
 
 /* Supporting concatenation */
-concat      ::= call_arg:c1 PLUS call_arg:c2            {: RESULT = c1 + " + " + c2; :}
+concat      ::= call_stm:c1 PLUS call_stm:c2            {: RESULT = c1 + " + " + c2; :}
             ;
 
-if_stmt     ::= IF LPAREN prefix_stmt:bool RPAREN call_arg:c1 ELSE call_arg:c2      {: RESULT = "(" + bool + " ? " + c1 + " : " + c2 + ")"; :}
+if_stmt     ::= IF LPAREN prefix_stmt:bool RPAREN call_stm:c1 ELSE call_stm:c2      {: RESULT = "(" + bool + " ? " + c1 + " : " + c2 + ")"; :}
             ;
 
 /* Supporting prefix which is the only logical expression */
-prefix_stmt ::= call_arg:c1 PREFIX call_arg:c2          {: RESULT = c2 + ".startsWith(" + c1 + ")"; :}
+prefix_stmt ::= call_stm:c1 PREFIX call_stm:c2          {: RESULT = c2 + ".startsWith(" + c1 + ")"; :}
             ;
