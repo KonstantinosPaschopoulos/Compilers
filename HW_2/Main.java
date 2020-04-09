@@ -16,12 +16,11 @@ public class Main {
         try {
             fis = new FileInputStream(args[0]);
 
-            symbolTable = new mySymbolTable();
             MiniJavaParser parser = new MiniJavaParser(fis);
-
             Goal root = parser.Goal();
             System.err.println("Program parsed successfully.");
 
+            symbolTable = new mySymbolTable();
             firstPhaseVisitor eval = new firstPhaseVisitor(symbolTable);
             System.out.println(root.accept(eval, null));
         } catch (ParseException ex) {
