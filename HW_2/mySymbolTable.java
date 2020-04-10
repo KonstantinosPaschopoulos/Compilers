@@ -7,8 +7,6 @@ public class mySymbolTable {
     public LinkedHashMap<String, classValue> classes;
 
     public mySymbolTable() {
-        System.out.println("here");
-
         classes = new LinkedHashMap<String, classValue>();
     }
 

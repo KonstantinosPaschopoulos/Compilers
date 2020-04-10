@@ -12,4 +12,8 @@ public class methodValue {
         methodLocals = new HashMap<String, String>();
     }
 
+    public boolean checkVar(String name) {
+        return methodParams.containsKey(name) || methodLocals.containsKey(name);
+    }
+
 }

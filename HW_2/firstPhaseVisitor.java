@@ -1,7 +1,7 @@
 import syntaxtree.*;
 import visitor.GJDepthFirst;
 
-public class firstPhaseVisitor extends GJDepthFirst<String, String> {
+public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
 
     mySymbolTable symbolTable;
 
@@ -29,7 +29,7 @@ public class firstPhaseVisitor extends GJDepthFirst<String, String> {
     * f16 -> "}"
     * f17 -> "}"
     */
-    public String visit(MainClass n, String argu) {
+    public String visit(MainClass n, argsObj argu) {
         String _ret = null;
         n.f0.accept(this, argu);
 
@@ -59,16 +59,13 @@ public class firstPhaseVisitor extends GJDepthFirst<String, String> {
 
         // Inserting the main's parameter 
         String paramName = n.f11.accept(this, argu);
-        // LinkedHashMap<String, String> params = new LinkedHashMap<String, String>();
-        // symbolTable.classes.get(className).methodParams.put("main", params);
-        // symbolTable.classes.get(className).methodParams.get("main").put(paramName, "String[]");
         symbolTable.classes.get(className).classMethods.get("main").methodParams.put(paramName, "String[]");
 
         n.f12.accept(this, argu);
         n.f13.accept(this, argu);
 
         // Inserting the variables inside the main
-        System.out.println("db " + n.f14.accept(this, argu));
+        n.f14.accept(this, new argsObj(className, "main", false, true));
 
         n.f15.accept(this, argu);
         n.f16.accept(this, argu);
@@ -81,12 +78,36 @@ public class firstPhaseVisitor extends GJDepthFirst<String, String> {
     * f1 -> Identifier()
     * f2 -> ";"
     */
-    public String visit(VarDeclaration n, String argu) {
+    public String visit(VarDeclaration n, argsObj argu) {
         String _ret = null;
         String t = n.f0.accept(this, argu);
         String id = n.f1.accept(this, argu);
         n.f2.accept(this, argu);
-        System.out.println("reap " + t + " " + id);
+
+        // TODO finish VarDecleration
+        if (argu.isClass == true) {
+            // Check if variable is already a field in the class
+            if (symbolTable.classes.get(argu.className).checkField(id) == true) {
+                System.err.println(
+                        "Variable \'" + id + "\' in function \'" + argu.methName + "\' has already been declared");
+                System.exit(1);
+            }
+
+            // Add field to class
+            symbolTable.classes.get(argu.className).classFields.put(id, t);
+        }
+        if (argu.isMethod == true) {
+            // Checking if variable is already decleared in parameters or local
+            if (symbolTable.classes.get(argu.className).classMethods.get(argu.methName).checkVar(id) == true) {
+                System.err.println(
+                        "Variable \'" + id + "\' in function \'" + argu.methName + "\' has already been declared");
+                System.exit(1);
+            }
+
+            // Add variable
+            symbolTable.classes.get(argu.className).classMethods.get(argu.methName).methodLocals.put(id, t);
+        }
+
         return _ret;
     }
 
@@ -96,7 +117,7 @@ public class firstPhaseVisitor extends GJDepthFirst<String, String> {
     *       | IntegerType()
     *       | Identifier()
     */
-    public String visit(Type n, String argu) {
+    public String visit(Type n, argsObj argu) {
         return n.f0.accept(this, argu);
     }
 
@@ -104,7 +125,7 @@ public class firstPhaseVisitor extends GJDepthFirst<String, String> {
     * f0 -> BooleanArrayType()
     *       | IntegerArrayType()
     */
-    public String visit(ArrayType n, String argu) {
+    public String visit(ArrayType n, argsObj argu) {
         return n.f0.accept(this, argu);
     }
 
@@ -113,7 +134,7 @@ public class firstPhaseVisitor extends GJDepthFirst<String, String> {
      * f1 -> "["
      * f2 -> "]"
      */
-    public String visit(BooleanArrayType n, String argu) {
+    public String visit(BooleanArrayType n, argsObj argu) {
         return n.f0.toString() + n.f1.toString() + n.f2.toString();
     }
 
@@ -122,28 +143,28 @@ public class firstPhaseVisitor extends GJDepthFirst<String, String> {
      * f1 -> "["
      * f2 -> "]"
      */
-    public String visit(IntegerArrayType n, String argu) {
+    public String visit(IntegerArrayType n, argsObj argu) {
         return n.f0.toString() + n.f1.toString() + n.f2.toString();
     }
 
     /**
     * f0 -> "boolean"
     */
-    public String visit(BooleanType n, String argu) {
+    public String visit(BooleanType n, argsObj argu) {
         return n.f0.toString();
     }
 
     /**
      * f0 -> "int"
      */
-    public String visit(IntegerType n, String argu) {
+    public String visit(IntegerType n, argsObj argu) {
         return n.f0.toString();
     }
 
     /**
     * f0 -> <IDENTIFIER>
     */
-    public String visit(Identifier n, String argu) {
+    public String visit(Identifier n, argsObj argu) {
         return n.f0.toString(); // Just making sure they are returned as strings
     }
 
