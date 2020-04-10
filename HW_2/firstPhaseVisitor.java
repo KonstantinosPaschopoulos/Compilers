@@ -74,6 +74,38 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
     }
 
     /**
+    * f0 -> "class"
+    * f1 -> Identifier()
+    * f2 -> "{"
+    * f3 -> ( VarDeclaration() )*
+    * f4 -> ( MethodDeclaration() )*
+    * f5 -> "}"
+    */
+    public String visit(ClassDeclaration n, argsObj argu) {
+        String _ret = null;
+        n.f0.accept(this, argu);
+
+        // Adding the class name after checking for duplicates
+        String className = n.f1.accept(this, argu);
+        if (symbolTable.checkClass(className) == true) {
+            System.err.println("There is already a class with the name \'" + className + "\'");
+            System.exit(1);
+        }
+        symbolTable.classes.put(className, new classValue());
+
+        n.f2.accept(this, argu);
+
+        // Adding the data members of the class to the symbol table
+        n.f3.accept(this, new argsObj(className, "", true, false));
+
+        // Adding the methods of the class to the symbol table
+        n.f4.accept(this, new argsObj(className, "", true, false));
+
+        n.f5.accept(this, argu);
+        return _ret;
+    }
+
+    /**
     * f0 -> Type()
     * f1 -> Identifier()
     * f2 -> ";"
@@ -89,12 +121,13 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
             // Check if variable is already a field in the class
             if (symbolTable.classes.get(argu.className).checkField(id) == true) {
                 System.err.println(
-                        "Variable \'" + id + "\' in function \'" + argu.methName + "\' has already been declared");
+                        "Variable \'" + id + "\' in class \'" + argu.className + "\' has already been declared");
                 System.exit(1);
             }
 
             // Add field to class
             symbolTable.classes.get(argu.className).classFields.put(id, t);
+            System.out.println("added var in class " + id);
         }
         if (argu.isMethod == true) {
             // Checking if variable is already decleared in parameters or local
@@ -104,10 +137,110 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
                 System.exit(1);
             }
 
-            // Add variable
+            // Add variable to method
             symbolTable.classes.get(argu.className).classMethods.get(argu.methName).methodLocals.put(id, t);
+            System.out.println("added var " + id);
         }
 
+        return _ret;
+    }
+
+    /**
+    * f0 -> "public"
+    * f1 -> Type()
+    * f2 -> Identifier()
+    * f3 -> "("
+    * f4 -> ( FormalParameterList() )?
+    * f5 -> ")"
+    * f6 -> "{"
+    * f7 -> ( VarDeclaration() )*
+    * f8 -> ( Statement() )*
+    * f9 -> "return"
+    * f10 -> Expression()
+    * f11 -> ";"
+    * f12 -> "}"
+    */
+    public String visit(MethodDeclaration n, argsObj argu) {
+        String _ret = null;
+        n.f0.accept(this, argu);
+
+        // Adding a new method to the class
+        String methType = n.f1.accept(this, argu);
+        String methName = n.f2.accept(this, argu);
+        if (symbolTable.classes.get(argu.className).checkMethod(methName) == true) {
+            System.err.println("There is already a method with the name \'" + methName + "\'" + " in the class \'"
+                    + argu.className + "\'");
+            System.exit(1);
+        }
+        methodValue meth = new methodValue(methType);
+        symbolTable.classes.get(argu.className).classMethods.put(methName, meth);
+
+        n.f3.accept(this, argu);
+
+        // Adding the parameters
+        n.f4.accept(this, new argsObj(argu.className, methName, false, true));
+
+        n.f5.accept(this, argu);
+        n.f6.accept(this, argu);
+
+        // Adding the local variables
+        n.f7.accept(this, new argsObj(argu.className, methName, false, true));
+
+        n.f8.accept(this, argu);
+        n.f9.accept(this, argu);
+        n.f10.accept(this, argu);
+        n.f11.accept(this, argu);
+        n.f12.accept(this, argu);
+        return _ret;
+    }
+
+    /**
+    * f0 -> FormalParameter()
+    * f1 -> FormalParameterTail()
+    */
+    public String visit(FormalParameterList n, argsObj argu) {
+        String _ret = null;
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+        return _ret;
+    }
+
+    /**
+     * f0 -> Type()
+     * f1 -> Identifier()
+     */
+    public String visit(FormalParameter n, argsObj argu) {
+        String _ret = null;
+
+        // Here I check and pass the parameters to the symbol table
+        String t = n.f0.accept(this, argu);
+        String id = n.f1.accept(this, argu);
+        if (symbolTable.classes.get(argu.className).classMethods.get(argu.methName).checkParam(id) == true) {
+            System.err.println(
+                    "Parameter \'" + id + "\' in function \'" + argu.methName + "\' has already been declared");
+            System.exit(1);
+        }
+        symbolTable.classes.get(argu.className).classMethods.get(argu.methName).methodParams.put(id, t);
+        System.out.println("added param " + id);
+
+        return _ret;
+    }
+
+    /**
+     * f0 -> ( FormalParameterTerm() )*
+     */
+    public String visit(FormalParameterTail n, argsObj argu) {
+        return n.f0.accept(this, argu);
+    }
+
+    /**
+     * f0 -> ","
+     * f1 -> FormalParameter()
+     */
+    public String visit(FormalParameterTerm n, argsObj argu) {
+        String _ret = null;
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
         return _ret;
     }
 

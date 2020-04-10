@@ -10,4 +10,8 @@ public class mySymbolTable {
         classes = new LinkedHashMap<String, classValue>();
     }
 
+    public boolean checkClass(String name) {
+        return classes.containsKey(name);
+    }
+
 }

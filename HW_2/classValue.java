@@ -6,12 +6,15 @@ public class classValue {
     public HashMap<String, methodValue> classMethods; //classMethods stores name, method info
 
     public classValue() {
-        System.out.println("yeet");
         classFields = new HashMap<String, String>();
         classMethods = new HashMap<String, methodValue>();
     }
 
     public boolean checkField(String name) {
         return classFields.containsKey(name);
+    }
+
+    public boolean checkMethod(String name) {
+        return classMethods.containsKey(name);
     }
 }

@@ -16,4 +16,8 @@ public class methodValue {
         return methodParams.containsKey(name) || methodLocals.containsKey(name);
     }
 
+    public boolean checkParam(String name) {
+        return methodParams.containsKey(name);
+    }
+
 }
