@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import syntaxtree.*;
 import visitor.GJDepthFirst;
 
@@ -7,6 +10,39 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
 
     public firstPhaseVisitor(mySymbolTable symTable) {
         this.symbolTable = symTable;
+    }
+
+    public void polyCheck(String child, String parent) {
+        // Iterate through the methods to see if any have been defined again in the child class
+        HashMap<String, methodValue> childMap = symbolTable.classes.get(child).classMethods;
+        HashMap<String, methodValue> parentMap = symbolTable.classes.get(parent).classMethods;
+        for (String keyC : childMap.keySet()) {
+            for (String keyP : parentMap.keySet()) {
+                if (keyC == keyP) {
+                    // Check return type
+                    if (childMap.get(keyC).returnType != parentMap.get(keyP).returnType) {
+                        System.err.println("The return type of the method \'" + keyC + "\' in the subclass \'" + child
+                                + "\' " + "doesn't match the return type in the original method");
+                        System.exit(1);
+                    }
+
+                    // Check argument types (ordered)
+                    LinkedHashMap<String, String> childParams = childMap.get(keyC).methodParams;
+                    LinkedHashMap<String, String> parentParams = parentMap.get(keyP).methodParams;
+                    if (parentParams.size() != childParams.size()) {
+                        System.err.println("The arguments of the method \'" + keyC + "\' in the subclass \'" + child
+                                + "\' " + "don't match the arguments in the original method");
+                        System.exit(1);
+                    }
+                    if ((new ArrayList<>(parentParams.entrySet())
+                            .equals(new ArrayList<>(childParams.entrySet()))) == false) {
+                        System.err.println("The arguments of the method \'" + keyC + "\' in the subclass \'" + child
+                                + "\' " + "don't match the arguments in the original method");
+                        System.exit(1);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -39,7 +75,7 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
             System.err.println("Error");
             System.exit(1);
         }
-        classValue value = new classValue();
+        classValue value = new classValue(false, "");
         symbolTable.classes.put(className, value);
 
         n.f2.accept(this, argu);
@@ -91,7 +127,7 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
             System.err.println("There is already a class with the name \'" + className + "\'");
             System.exit(1);
         }
-        symbolTable.classes.put(className, new classValue());
+        symbolTable.classes.put(className, new classValue(false, ""));
 
         n.f2.accept(this, argu);
 
@@ -106,6 +142,52 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
     }
 
     /**
+    * f0 -> "class"
+    * f1 -> Identifier()
+    * f2 -> "extends"
+    * f3 -> Identifier()
+    * f4 -> "{"
+    * f5 -> ( VarDeclaration() )*
+    * f6 -> ( MethodDeclaration() )*
+    * f7 -> "}"
+    */
+    public String visit(ClassExtendsDeclaration n, argsObj argu) {
+        String _ret = null;
+        n.f0.accept(this, argu);
+
+        String child = n.f1.accept(this, argu);
+
+        n.f2.accept(this, argu);
+
+        String parent = n.f3.accept(this, argu);
+
+        // Two checks: if the parent class has been declared and if the child class is a duplicate
+        if (symbolTable.checkClass(parent) == false) {
+            System.err.println("The parent class of \'" + child + "\' has not been declared");
+            System.exit(1);
+        }
+        if (symbolTable.checkClass(child) == true) {
+            System.err.println("There is already a class with the name \'" + child + "\'");
+            System.exit(1);
+        }
+        symbolTable.classes.put(child, new classValue(true, parent));
+
+        n.f4.accept(this, argu);
+
+        // Since fields in the base and derived class can have the same name, no more checks are necessary
+        n.f5.accept(this, new argsObj(child, "", true, false));
+
+        // Adding the methods of the derived class
+        n.f6.accept(this, new argsObj(child, "", true, false));
+
+        // Checking if the redefined methods in the subclass are defined properly
+        polyCheck(child, parent);
+
+        n.f7.accept(this, argu);
+        return _ret;
+    }
+
+    /**
     * f0 -> Type()
     * f1 -> Identifier()
     * f2 -> ";"
@@ -116,7 +198,6 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
         String id = n.f1.accept(this, argu);
         n.f2.accept(this, argu);
 
-        // TODO finish VarDecleration
         if (argu.isClass == true) {
             // Check if variable is already a field in the class
             if (symbolTable.classes.get(argu.className).checkField(id) == true) {
