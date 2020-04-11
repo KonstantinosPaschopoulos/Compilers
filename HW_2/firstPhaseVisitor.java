@@ -1,7 +1,3 @@
-
-// import java.util.ArrayList;
-// import java.util.HashMap;
-// import java.util.LinkedHashMap;
 import syntaxtree.*;
 import visitor.GJDepthFirst;
 
@@ -150,7 +146,6 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
 
         // Checking if the redefined methods in the subclass are defined properly
         symbolTable.polyCheck(child, parent);
-        // polyCheck(child, parent);
 
         n.f7.accept(this, argu);
         return _ret;
