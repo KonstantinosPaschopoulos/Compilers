@@ -21,8 +21,14 @@ public class Main {
             System.err.println("Program parsed successfully.");
 
             symbolTable = new mySymbolTable();
-            firstPhaseVisitor eval = new firstPhaseVisitor(symbolTable);
-            System.out.println(root.accept(eval, null));
+            firstPhaseVisitor first = new firstPhaseVisitor(symbolTable);
+            root.accept(first, null);
+
+            fis = new FileInputStream(args[0]);
+            parser = new MiniJavaParser(fis);
+            root = parser.Goal();
+            secondPhaseVisitor second = new secondPhaseVisitor(symbolTable);
+            root.accept(second, null);
         } catch (ParseException ex) {
             System.out.println(ex.getMessage());
         } catch (FileNotFoundException ex) {

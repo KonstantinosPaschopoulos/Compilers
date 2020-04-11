@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Objects;
 
 public class mySymbolTable {
 
@@ -17,12 +18,13 @@ public class mySymbolTable {
     }
 
     public void polyCheck(String child, String parent) {
-        // Iterate through the methods to see if any have been defined again in the child class
+        // Iterate through all the parent classes or the child subclass to check for methods
         HashMap<String, methodValue> childMap = classes.get(child).classMethods;
 
         do {
             HashMap<String, methodValue> parentMap = classes.get(parent).classMethods;
 
+            // Iterate through the methods to see if any have been defined again in the child class
             for (String keyC : childMap.keySet()) {
                 for (String keyP : parentMap.keySet()) {
                     if (keyC == keyP) {
@@ -57,6 +59,22 @@ public class mySymbolTable {
             parent = classes.get(parent).parentClass;
 
         } while (parent != null && !parent.isEmpty());
+    }
+
+    public void checkType(String typeId, String name) {
+        if (Objects.equals("boolean", typeId) || Objects.equals("int", typeId) || Objects.equals("boolean[]", typeId)
+                || Objects.equals("int[]", typeId)) {
+            // It's one of the basic types
+            return;
+        } else {
+            // Check if the type is one the declared classes
+            if (classes.containsKey(typeId)) {
+                return;
+            } else {
+                System.err.println("Cannot identify the type \'" + typeId + "\' of the variable \'" + name + "\'");
+                System.exit(1);
+            }
+        }
     }
 
 }
