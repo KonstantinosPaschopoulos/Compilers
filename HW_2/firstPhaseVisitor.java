@@ -1,6 +1,7 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+
+// import java.util.ArrayList;
+// import java.util.HashMap;
+// import java.util.LinkedHashMap;
 import syntaxtree.*;
 import visitor.GJDepthFirst;
 
@@ -10,39 +11,6 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
 
     public firstPhaseVisitor(mySymbolTable symTable) {
         this.symbolTable = symTable;
-    }
-
-    public void polyCheck(String child, String parent) {
-        // Iterate through the methods to see if any have been defined again in the child class
-        HashMap<String, methodValue> childMap = symbolTable.classes.get(child).classMethods;
-        HashMap<String, methodValue> parentMap = symbolTable.classes.get(parent).classMethods;
-        for (String keyC : childMap.keySet()) {
-            for (String keyP : parentMap.keySet()) {
-                if (keyC == keyP) {
-                    // Check return type
-                    if (childMap.get(keyC).returnType != parentMap.get(keyP).returnType) {
-                        System.err.println("The return type of the method \'" + keyC + "\' in the subclass \'" + child
-                                + "\' " + "doesn't match the return type in the original method");
-                        System.exit(1);
-                    }
-
-                    // Check argument types (ordered)
-                    LinkedHashMap<String, String> childParams = childMap.get(keyC).methodParams;
-                    LinkedHashMap<String, String> parentParams = parentMap.get(keyP).methodParams;
-                    if (parentParams.size() != childParams.size()) {
-                        System.err.println("The arguments of the method \'" + keyC + "\' in the subclass \'" + child
-                                + "\' " + "don't match the arguments in the original method");
-                        System.exit(1);
-                    }
-                    if ((new ArrayList<>(parentParams.entrySet())
-                            .equals(new ArrayList<>(childParams.entrySet()))) == false) {
-                        System.err.println("The arguments of the method \'" + keyC + "\' in the subclass \'" + child
-                                + "\' " + "don't match the arguments in the original method");
-                        System.exit(1);
-                    }
-                }
-            }
-        }
     }
 
     /**
@@ -181,7 +149,8 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
         n.f6.accept(this, new argsObj(child, "", true, false));
 
         // Checking if the redefined methods in the subclass are defined properly
-        polyCheck(child, parent);
+        symbolTable.polyCheck(child, parent);
+        // polyCheck(child, parent);
 
         n.f7.accept(this, argu);
         return _ret;
