@@ -71,7 +71,7 @@ public class mySymbolTable {
             if (classes.containsKey(typeId)) {
                 return;
             } else {
-                System.err.println("Cannot identify the type \'" + typeId + "\' of the variable \'" + name + "\'");
+                System.err.println("Cannot identify the type \'" + typeId + "\' of \'" + name + "\'");
                 System.exit(1);
             }
         }
