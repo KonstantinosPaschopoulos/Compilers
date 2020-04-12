@@ -77,4 +77,32 @@ public class mySymbolTable {
         }
     }
 
+    // Verify that the identifier is properly declared and identifiable
+    public String verifyVar(String name, String methName, String className) {
+        if (classes.get(className).classMethods.get(methName).methodLocals.containsKey(name) == true) {
+            // First check the local variables of the method
+            return classes.get(className).classMethods.get(methName).methodLocals.get(name);
+        } else if (classes.get(className).classMethods.get(methName).methodParams.containsKey(name) == true) {
+            // Then check the method parameters
+            return classes.get(className).classMethods.get(methName).methodParams.get(name);
+        } else if (classes.get(className).classFields.containsKey(name) == true) {
+            // Then check the fields of the class
+            return classes.get(className).classFields.get(name);
+        } else {
+            // Finally check for inherited variables
+            while (classes.get(className).extendsBool == true) {
+                className = classes.get(className).parentClass;
+
+                if (classes.get(className).classFields.containsKey(name) == true) {
+                    return classes.get(className).classFields.get(name);
+                }
+            }
+
+            // Could not find the variable
+            System.err.println("The variable \'" + name + "\' has not been declared");
+            System.exit(1);
+            return "error";
+        }
+    }
+
 }

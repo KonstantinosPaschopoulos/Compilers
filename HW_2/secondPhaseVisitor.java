@@ -52,7 +52,8 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         n.f14.accept(this, argu);
 
         // TODO statement check
-        n.f15.accept(this, argu);
+        n.f15.accept(this, new argsObj(className, "main", true, true));
+
         n.f16.accept(this, argu);
         n.f17.accept(this, argu);
         return _ret;
@@ -69,14 +70,15 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     public String visit(ClassDeclaration n, argsObj argu) {
         String _ret = null;
         n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
+        String className = n.f1.accept(this, argu);
         n.f2.accept(this, argu);
 
         // Checking the types of the declared fields
         n.f3.accept(this, argu);
 
         // TODO method check
-        n.f4.accept(this, argu);
+        n.f4.accept(this, new argsObj(className, "", true, false));
+
         n.f5.accept(this, argu);
         return _ret;
     }
@@ -94,7 +96,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     public String visit(ClassExtendsDeclaration n, argsObj argu) {
         String _ret = null;
         n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
+        String className = n.f1.accept(this, argu);
         n.f2.accept(this, argu);
         n.f3.accept(this, argu);
         n.f4.accept(this, argu);
@@ -103,7 +105,8 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         n.f5.accept(this, argu);
 
         // TODO method check
-        n.f6.accept(this, argu);
+        n.f6.accept(this, new argsObj(className, "", true, false));
+
         n.f7.accept(this, argu);
         return _ret;
     }
@@ -143,7 +146,9 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         // Checks the type of the local variables in the method
         n.f7.accept(this, argu);
 
-        n.f8.accept(this, argu);
+        // Checks the statements in the function
+        n.f8.accept(this, new argsObj(argu.className, methName, true, true));
+
         n.f9.accept(this, argu);
         n.f10.accept(this, argu);
         n.f11.accept(this, argu);
@@ -266,5 +271,49 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     */
     public String visit(Identifier n, argsObj argu) {
         return n.f0.toString();
+    }
+
+    /**
+    * f0 -> Block()
+    *       | AssignmentStatement()
+    *       | ArrayAssignmentStatement()
+    *       | IfStatement()
+    *       | WhileStatement()
+    *       | PrintStatement()
+    */
+    public String visit(Statement n, argsObj argu) {
+        return n.f0.accept(this, argu);
+    }
+
+    /**
+    * f0 -> "{"
+    * f1 -> ( Statement() )*
+    * f2 -> "}"
+    */
+    public String visit(Block n, argsObj argu) {
+        String _ret = null;
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+        n.f2.accept(this, argu);
+        return _ret;
+    }
+
+    /**
+    * f0 -> Identifier()
+    * f1 -> "="
+    * f2 -> Expression()
+    * f3 -> ";"
+    */
+    public String visit(AssignmentStatement n, argsObj argu) {
+        String _ret = null;
+
+        // Verify that the identifier is properly declared and identifiable
+        String idName = n.f0.accept(this, argu);
+        String leftType = symbolTable.verifyVar(idName, argu.methName, argu.className);
+
+        n.f1.accept(this, argu);
+        n.f2.accept(this, argu);
+        n.f3.accept(this, argu);
+        return _ret;
     }
 }
