@@ -1,3 +1,4 @@
+import java.util.Objects;
 import syntaxtree.*;
 import visitor.GJDepthFirst;
 
@@ -146,11 +147,14 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         // Checks the type of the local variables in the method
         n.f7.accept(this, argu);
 
-        // Checks the statements in the function
+        // TODO Checks the statements in the function
         n.f8.accept(this, new argsObj(argu.className, methName, true, true));
 
         n.f9.accept(this, argu);
+
+        // TODO check return matches with declared type
         n.f10.accept(this, argu);
+
         n.f11.accept(this, argu);
         n.f12.accept(this, argu);
         return _ret;
@@ -174,6 +178,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     public String visit(FormalParameter n, argsObj argu) {
         String _ret = null;
 
+        // Make sure the type of the parameters is a legal type
         String paramType = n.f0.accept(this, argu);
         String paramName = n.f1.accept(this, argu);
         symbolTable.checkType(paramType, paramName);
@@ -307,13 +312,135 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     public String visit(AssignmentStatement n, argsObj argu) {
         String _ret = null;
 
-        // Verify that the identifier is properly declared and identifiable
+        // Verify that the variable is properly declared and identifiable
         String idName = n.f0.accept(this, argu);
         String leftType = symbolTable.verifyVar(idName, argu.methName, argu.className);
 
         n.f1.accept(this, argu);
+
+        // TODO: Check if types are matching
         n.f2.accept(this, argu);
+
         n.f3.accept(this, argu);
         return _ret;
     }
+
+    /**
+    * f0 -> Identifier()
+    * f1 -> "["
+    * f2 -> Expression()
+    * f3 -> "]"
+    * f4 -> "="
+    * f5 -> Expression()
+    * f6 -> ";"
+    */
+    public String visit(ArrayAssignmentStatement n, argsObj argu) {
+        String _ret = null;
+
+        // Verify that the variable has been properly declared
+        String arrayName = n.f0.accept(this, argu);
+        String leftType = symbolTable.verifyVar(arrayName, argu.methName, argu.className);
+
+        // leftType can only be type of int[] or boolean[]
+        if (!Objects.equals("boolean[]", leftType) && !Objects.equals("int[]", leftType)) {
+            System.err.println("Variable \'" + arrayName + "\' is not an array but tries to reference array type");
+            System.exit(1);
+        }
+
+        n.f1.accept(this, argu);
+
+        // TODO: Make sure the expression inside the [] is an int
+        n.f2.accept(this, argu);
+
+        n.f3.accept(this, argu);
+        n.f4.accept(this, argu);
+
+        // TODO: Check for matching types
+        n.f5.accept(this, argu);
+
+        n.f6.accept(this, argu);
+        return _ret;
+    }
+
+    /**
+    * f0 -> "if"
+    * f1 -> "("
+    * f2 -> Expression()
+    * f3 -> ")"
+    * f4 -> Statement()
+    * f5 -> "else"
+    * f6 -> Statement()
+    */
+    public String visit(IfStatement n, argsObj argu) {
+        String _ret = null;
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+
+        // TODO: Make sure the type is boolean
+        n.f2.accept(this, argu);
+
+        n.f3.accept(this, argu);
+        n.f4.accept(this, argu);
+        n.f5.accept(this, argu);
+        n.f6.accept(this, argu);
+        return _ret;
+    }
+
+    /**
+    * f0 -> "while"
+    * f1 -> "("
+    * f2 -> Expression()
+    * f3 -> ")"
+    * f4 -> Statement()
+    */
+    public String visit(WhileStatement n, argsObj argu) {
+        String _ret = null;
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+
+        // TODO: Make sure the type is boolean
+        n.f2.accept(this, argu);
+
+        n.f3.accept(this, argu);
+        n.f4.accept(this, argu);
+        return _ret;
+    }
+
+    /**
+    * f0 -> "System.out.println"
+    * f1 -> "("
+    * f2 -> Expression()
+    * f3 -> ")"
+    * f4 -> ";"
+    */
+    public String visit(PrintStatement n, argsObj argu) {
+        String _ret = null;
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+
+        // TODO: check type of print Type can only be int
+        n.f2.accept(this, argu);
+
+        n.f3.accept(this, argu);
+        n.f4.accept(this, argu);
+        return _ret;
+    }
+
+    // Expressions from here on out
+
+    /**
+    * f0 -> AndExpression()
+    *       | CompareExpression()
+    *       | PlusExpression()
+    *       | MinusExpression()
+    *       | TimesExpression()
+    *       | ArrayLookup()
+    *       | ArrayLength()
+    *       | MessageSend()
+    *       | Clause()
+    */
+    public String visit(Expression n, argsObj argu) {
+        return n.f0.accept(this, argu).toString();
+    }
+
 }
