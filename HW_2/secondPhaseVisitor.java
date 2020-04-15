@@ -153,7 +153,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         n.f9.accept(this, argu);
 
         // TODO check return matches with declared type
-        n.f10.accept(this, argu);
+        n.f10.accept(this, new argsObj(argu.className, methName, true, true));
 
         n.f11.accept(this, argu);
         n.f12.accept(this, argu);
@@ -268,13 +268,6 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
      * f0 -> "int"
      */
     public String visit(IntegerType n, argsObj argu) {
-        return n.f0.toString();
-    }
-
-    /**
-    * f0 -> <IDENTIFIER>
-    */
-    public String visit(Identifier n, argsObj argu) {
         return n.f0.toString();
     }
 
@@ -441,6 +434,344 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     */
     public String visit(Expression n, argsObj argu) {
         return n.f0.accept(this, argu).toString();
+    }
+
+    /**
+    * f0 -> Clause()
+    * f1 -> "&&"
+    * f2 -> Clause()
+    */
+    public String visit(AndExpression n, argsObj argu) {
+        String leftType = n.f0.accept(this, argu);
+
+        n.f1.accept(this, argu);
+
+        String rightType = n.f2.accept(this, argu);
+
+        // && can only be between two booleans
+        if (!Objects.equals("boolean", leftType) || !Objects.equals("boolean", rightType)) {
+            System.err.println("&& expression has to be between two booleans");
+            System.exit(1);
+        }
+
+        return "boolean";
+    }
+
+    /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "<"
+    * f2 -> PrimaryExpression()
+    */
+    public String visit(CompareExpression n, argsObj argu) {
+        String leftType = n.f0.accept(this, argu);
+
+        n.f1.accept(this, argu);
+
+        String rightType = n.f2.accept(this, argu);
+        // < can only be between two ints
+        if (!Objects.equals("int", leftType) || !Objects.equals("int", rightType)) {
+            System.err.println("< expression has to be between two integers");
+            System.exit(1);
+        }
+
+        return "boolean";
+    }
+
+    /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "+"
+    * f2 -> PrimaryExpression()
+    */
+    public String visit(PlusExpression n, argsObj argu) {
+        String leftType = n.f0.accept(this, argu);
+
+        n.f1.accept(this, argu);
+
+        String rightType = n.f2.accept(this, argu);
+        // + can only be between two ints
+        if (!Objects.equals("int", leftType) || !Objects.equals("int", rightType)) {
+            System.err.println("+ expression has to be between two integers");
+            System.exit(1);
+        }
+
+        return "int";
+    }
+
+    /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "-"
+    * f2 -> PrimaryExpression()
+    */
+    public String visit(MinusExpression n, argsObj argu) {
+        String leftType = n.f0.accept(this, argu);
+
+        n.f1.accept(this, argu);
+
+        String rightType = n.f2.accept(this, argu);
+        // - can only be between two ints
+        if (!Objects.equals("int", leftType) || !Objects.equals("int", rightType)) {
+            System.err.println("- expression has to be between two integers");
+            System.exit(1);
+        }
+
+        return "int";
+    }
+
+    /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "*"
+    * f2 -> PrimaryExpression()
+    */
+    public String visit(TimesExpression n, argsObj argu) {
+        String leftType = n.f0.accept(this, argu);
+
+        n.f1.accept(this, argu);
+
+        String rightType = n.f2.accept(this, argu);
+        // * can only be between two ints
+        if (!Objects.equals("int", leftType) || !Objects.equals("int", rightType)) {
+            System.err.println("* expression has to be between two integers");
+            System.exit(1);
+        }
+
+        return "int";
+    }
+
+    /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "["
+    * f2 -> PrimaryExpression()
+    * f3 -> "]"
+    */
+    public String visit(ArrayLookup n, argsObj argu) {
+        // Make sure varType is of type int[] or boolean[]
+        String varType = n.f0.accept(this, argu);
+        if (!Objects.equals("boolean[]", varType) && !Objects.equals("int[]", varType)) {
+            System.err.println("Variable \'" + varType + "\' is not an array but tries to reference an array type");
+            System.exit(1);
+        }
+
+        n.f1.accept(this, argu);
+
+        // Make sure the expression inside the [] is an integer
+        String inType = n.f2.accept(this, argu);
+        if (Objects.equals("int", inType) == false) {
+            System.err.println("The array iterator \'" + inType + "\' is not an integer");
+            System.exit(1);
+        }
+
+        n.f3.accept(this, argu);
+
+        // Return the appropriate type for the element that was accessed
+        if (Objects.equals("boolean[]", varType)) {
+            return "boolean";
+        } else {
+            return "int";
+        }
+    }
+
+    /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "."
+    * f2 -> "length"
+    */
+    public String visit(ArrayLength n, argsObj argu) {
+        String exprType = n.f0.accept(this, argu);
+        if (!Objects.equals("boolean[]", exprType) && !Objects.equals("int[]", exprType)) {
+            System.err.println(
+                    "Cannot use the .length operator on the variable \'" + exprType + "\' since it is not an array");
+            System.exit(1);
+        }
+
+        n.f1.accept(this, argu);
+        n.f2.accept(this, argu);
+
+        // The length is an integer so we return the correct type
+        return "int";
+    }
+
+    /**
+    * f0 -> NotExpression()
+    *       | PrimaryExpression()
+    */
+    public String visit(Clause n, argsObj argu) {
+        return n.f0.accept(this, argu);
+    }
+
+    /**
+    * f0 -> IntegerLiteral()
+    *       | TrueLiteral()
+    *       | FalseLiteral()
+    *       | Identifier()
+    *       | ThisExpression()
+    *       | ArrayAllocationExpression()
+    *       | AllocationExpression()
+    *       | BracketExpression()
+    */
+    public String visit(PrimaryExpression n, argsObj argu) {
+        String primExpr = n.f0.accept(this, argu);
+
+        if (Objects.equals("int", primExpr) || Objects.equals("boolean", primExpr)
+                || Objects.equals("boolean[]", primExpr) || Objects.equals("int[]", primExpr)) {
+            // It's one of the basic types, return as is
+            return primExpr;
+        } else if (Objects.equals("this", primExpr)) {
+            // Return the from which this was called
+            return argu.className;
+        } else if (n.f0.which == 3) {
+            // In this case it is an identifier which means it is a variable,
+            // so we check if it is properly declared and and return its type
+            return symbolTable.verifyVar(primExpr, argu.methName, argu.className);
+        } else {
+            // In the last case we return either a bracketed expression or a type from the AllocationExpression() call
+            return primExpr;
+        }
+    }
+
+    /**
+    * f0 -> <INTEGER_LITERAL>
+    */
+    public String visit(IntegerLiteral n, argsObj argu) {
+        n.f0.accept(this, argu);
+        return "int";
+    }
+
+    /**
+     * f0 -> "true"
+     */
+    public String visit(TrueLiteral n, argsObj argu) {
+        n.f0.accept(this, argu);
+        return "boolean";
+    }
+
+    /**
+     * f0 -> "false"
+     */
+    public String visit(FalseLiteral n, argsObj argu) {
+        n.f0.accept(this, argu);
+        return "boolean";
+    }
+
+    /**
+     * f0 -> <IDENTIFIER>
+     */
+    public String visit(Identifier n, argsObj argu) {
+        return n.f0.toString();
+    }
+
+    /**
+     * f0 -> "this"
+     */
+    public String visit(ThisExpression n, argsObj argu) {
+        return n.f0.toString();
+    }
+
+    /**
+    * f0 -> BooleanArrayAllocationExpression()
+    *       | IntegerArrayAllocationExpression()
+    */
+    public String visit(ArrayAllocationExpression n, argsObj argu) {
+        return n.f0.accept(this, argu);
+    }
+
+    /**
+    * f0 -> "new"
+    * f1 -> "boolean"
+    * f2 -> "["
+    * f3 -> Expression()
+    * f4 -> "]"
+    */
+    public String visit(BooleanArrayAllocationExpression n, argsObj argu) {
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+        n.f2.accept(this, argu);
+
+        // Making sure the index expression is an int
+        String indexType = n.f3.accept(this, argu);
+        if (Objects.equals("int", indexType) == false) {
+            System.err.println("Invalid index expression");
+            System.exit(1);
+        }
+
+        n.f4.accept(this, argu);
+        return "boolean[]";
+    }
+
+    /**
+     * f0 -> "new"
+     * f1 -> "int"
+     * f2 -> "["
+     * f3 -> Expression()
+     * f4 -> "]"
+     */
+    public String visit(IntegerArrayAllocationExpression n, argsObj argu) {
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+        n.f2.accept(this, argu);
+
+        // Making sure the index expression is an int
+        String indexType = n.f3.accept(this, argu);
+        if (Objects.equals("int", indexType) == false) {
+            System.err.println("Invalid index expression");
+            System.exit(1);
+        }
+
+        n.f4.accept(this, argu);
+        return "int[]";
+    }
+
+    /**
+    * f0 -> "new"
+    * f1 -> Identifier()
+    * f2 -> "("
+    * f3 -> ")"
+    */
+    public String visit(AllocationExpression n, argsObj argu) {
+        n.f0.accept(this, argu);
+
+        // Making sure the class that is being used has been declared
+        String className = n.f1.accept(this, argu);
+        if (symbolTable.classes.containsKey(className) == false) {
+            System.err.println("Cannot allocate \'" + className + "\' because it hasn't been declared before");
+            System.exit(1);
+        }
+
+        n.f2.accept(this, argu);
+        n.f3.accept(this, argu);
+
+        return className;
+    }
+
+    /**
+    * f0 -> "!"
+    * f1 -> Clause()
+    */
+    public String visit(NotExpression n, argsObj argu) {
+        n.f0.accept(this, argu);
+
+        // The operand to the right of '!' operator has to be boolean
+        String clauseType = n.f1.accept(this, argu);
+        if (Objects.equals("boolean", clauseType) == false) {
+            System.err.println("Wrong operand type for \'!\' operator");
+            System.exit(1);
+        }
+
+        return "boolean";
+    }
+
+    /**
+    * f0 -> "("
+    * f1 -> Expression()
+    * f2 -> ")"
+    */
+    public String visit(BracketExpression n, argsObj argu) {
+        n.f0.accept(this, argu);
+
+        // Making sure to return the type of the bracketed expression
+        String expr = n.f1.accept(this, argu).toString();
+
+        n.f2.accept(this, argu);
+        return expr;
     }
 
 }
