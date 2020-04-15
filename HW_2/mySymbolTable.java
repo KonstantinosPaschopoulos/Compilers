@@ -105,4 +105,25 @@ public class mySymbolTable {
         }
     }
 
+    public String verifyMethod(String methName, String className) {
+        // Trying to find the called method in the class
+        if (classes.get(className).checkMethod(methName) == true) {
+            return classes.get(className).classMethods.get(methName).returnType;
+        }
+
+        // Check for inherited methods
+        while (classes.get(className).extendsBool == true) {
+            className = classes.get(className).parentClass;
+
+            if (classes.get(className).checkMethod(methName) == true) {
+                return classes.get(className).classMethods.get(methName).returnType;
+            }
+        }
+
+        // Could not find the method
+        System.err.println("The method \'" + methName + "\' has not been declared");
+        System.exit(1);
+        return "error";
+    }
+
 }

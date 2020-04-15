@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Objects;
 import syntaxtree.*;
 import visitor.GJDepthFirst;
@@ -5,9 +6,13 @@ import visitor.GJDepthFirst;
 public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
 
     mySymbolTable symbolTable;
+    int arguIndex;
+    ArrayList<String> arguList;
 
     public secondPhaseVisitor(mySymbolTable symTable) {
         this.symbolTable = symTable;
+        this.arguIndex = -1;
+        arguList = new ArrayList<String>();
     }
 
     /**
@@ -578,8 +583,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     public String visit(ArrayLength n, argsObj argu) {
         String exprType = n.f0.accept(this, argu);
         if (!Objects.equals("boolean[]", exprType) && !Objects.equals("int[]", exprType)) {
-            System.err.println(
-                    "Cannot use the .length operator on the variable \'" + exprType + "\' since it is not an array");
+            System.err.println("Cannot use the .length operator on a variable that is not an array");
             System.exit(1);
         }
 
@@ -588,6 +592,91 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
 
         // The length is an integer so we return the correct type
         return "int";
+    }
+
+    /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "."
+    * f2 -> Identifier()
+    * f3 -> "("
+    * f4 -> ( ExpressionList() )?
+    * f5 -> ")"
+    */
+    public String visit(MessageSend n, argsObj argu) {
+        String exprType = n.f0.accept(this, argu);
+
+        // First of make sure it is not one of the basic types
+        if (Objects.equals("boolean[]", exprType) || Objects.equals("int[]", exprType)
+                || Objects.equals("int", exprType) || Objects.equals("boolean", exprType)) {
+            System.err.println("Cannot call a method on a variable that is not a class");
+            System.exit(1);
+        }
+
+        n.f1.accept(this, argu);
+
+        String calledMethName = n.f2.accept(this, argu);
+
+        String methType = symbolTable.verifyMethod(calledMethName, exprType);
+
+        n.f3.accept(this, argu);
+
+        // Type check the argument list
+        arguIndex++;
+        n.f4.accept(this, argu);
+
+        if ((arguIndex + 1) == arguList.size()) {
+            // There is a new element in the array
+            System.out.println(arguList.get(arguIndex) + " " + arguIndex);
+
+            // Remove the last nested function in the argument
+            arguList.remove(arguIndex);
+        } else {
+            // There were no arguments
+        }
+        arguIndex--;
+
+        n.f5.accept(this, argu);
+
+        return methType;
+    }
+
+    /**
+     * f0 -> Expression()
+     * f1 -> ExpressionTail()
+     */
+    public String visit(ExpressionList n, argsObj argu) {
+        String _ret = null;
+
+        // Create a new entry for the array that holds the argument
+        String exprType = n.f0.accept(this, argu);
+        arguList.add(exprType);
+
+        n.f1.accept(this, argu);
+
+        return _ret;
+    }
+
+    /**
+     * f0 -> ( ExpressionTerm() )*
+     */
+    public String visit(ExpressionTail n, argsObj argu) {
+        return n.f0.accept(this, argu);
+    }
+
+    /**
+     * f0 -> ","
+     * f1 -> Expression()
+     */
+    public String visit(ExpressionTerm n, argsObj argu) {
+        String _ret = null;
+        n.f0.accept(this, argu);
+
+        // Add an argument to the latest entry of the array
+        String exprType = n.f1.accept(this, argu);
+        exprType = arguList.get(arguIndex) + "," + exprType; // Stick the new argument to the end of the previous ones
+        arguList.set(arguIndex, exprType);
+
+        return _ret;
     }
 
     /**
