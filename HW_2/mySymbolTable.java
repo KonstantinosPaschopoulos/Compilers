@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Objects;
+import java.util.StringTokenizer;
 
 public class mySymbolTable {
 
@@ -124,6 +125,45 @@ public class mySymbolTable {
         System.err.println("The method \'" + methName + "\' has not been declared");
         System.exit(1);
         return "error";
+    }
+
+    public void checkArguments(String callMeth, String callClass, String args) {
+        // First of: finding where the method that is called is declared
+        if (classes.get(callClass).checkMethod(callMeth) == false) {
+            while (classes.get(callClass).extendsBool == true) {
+                callClass = classes.get(callClass).parentClass;
+
+                if (classes.get(callClass).checkMethod(callClass) == true) {
+                    break;
+                }
+            }
+        }
+
+        // Checking that the arguments match
+        if (args == null || args.isEmpty()) {
+            if (classes.get(callClass).classMethods.get(callMeth).methodParams.size() != 0) {
+                System.err.println("Wrong arguments when using the method \'" + callMeth + "\'");
+                System.exit(1);
+            }
+            System.out.println("Empty args");
+        } else {
+            // Creating an ArrayList object to hold the argument we want to check
+
+            ArrayList<String> argList = new ArrayList<String>();
+
+            StringTokenizer arg = new StringTokenizer(args, ",");
+            while (arg.hasMoreTokens()) {
+                argList.add(arg.nextToken());
+                // System.out.println(arg.nextToken());
+            }
+
+            if ((new ArrayList<>(classes.get(callClass).classMethods.get(callMeth).methodParams.values())
+                    .equals(argList)) == false) {
+                System.err.println("Wrong arguments when using the method \'" + callMeth + "\'");
+                System.exit(1);
+            }
+        }
+
     }
 
 }

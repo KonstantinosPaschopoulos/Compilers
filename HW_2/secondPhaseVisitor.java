@@ -627,11 +627,13 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         if ((arguIndex + 1) == arguList.size()) {
             // There is a new element in the array
             System.out.println(arguList.get(arguIndex) + " " + arguIndex);
+            symbolTable.checkArguments(calledMethName, exprType, arguList.get(arguIndex));
 
             // Remove the last nested function in the argument
             arguList.remove(arguIndex);
         } else {
             // There were no arguments
+            symbolTable.checkArguments(calledMethName, exprType, "");
         }
         arguIndex--;
 
