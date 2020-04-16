@@ -57,7 +57,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         // Check types of variables of main
         n.f14.accept(this, argu);
 
-        // TODO statement check
+        // Checking the statements of the main
         n.f15.accept(this, new argsObj(className, "main", true, true));
 
         n.f16.accept(this, argu);
@@ -82,7 +82,6 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         // Checking the types of the declared fields
         n.f3.accept(this, argu);
 
-        // TODO method check
         n.f4.accept(this, new argsObj(className, "", true, false));
 
         n.f5.accept(this, argu);
@@ -110,7 +109,6 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         // Check the types of the fields
         n.f5.accept(this, argu);
 
-        // TODO method check
         n.f6.accept(this, new argsObj(className, "", true, false));
 
         n.f7.accept(this, argu);
@@ -152,13 +150,16 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         // Checks the type of the local variables in the method
         n.f7.accept(this, argu);
 
-        // TODO Checks the statements in the function
         n.f8.accept(this, new argsObj(argu.className, methName, true, true));
 
         n.f9.accept(this, argu);
 
-        // TODO check return matches with declared type
-        n.f10.accept(this, new argsObj(argu.className, methName, true, true));
+        // Check that return matches with declared type
+        String retExpr = n.f10.accept(this, new argsObj(argu.className, methName, true, true));
+        if (Objects.equals(retType, retExpr) == false) {
+            System.err.println("Wrong type returned from method \'" + methName + "\'");
+            System.exit(1);
+        }
 
         n.f11.accept(this, argu);
         n.f12.accept(this, argu);
@@ -316,8 +317,18 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
 
         n.f1.accept(this, argu);
 
-        // TODO: Check if types are matching
-        n.f2.accept(this, argu);
+        // Check if types are matching
+        String rightType = n.f2.accept(this, argu);
+        if (Objects.equals(leftType, rightType) == false) {
+            System.err.println("Invalid type assigned to variable \'" + idName + "\'");
+            System.exit(1);
+        }
+
+        // Also check is leftType is a superclass of rightType
+        if (symbolTable.isParent(rightType, leftType) == false) {
+            System.err.println("Invalid type assigned to variable \'" + idName + "\'");
+            System.exit(1);
+        }
 
         n.f3.accept(this, argu);
         return _ret;
@@ -347,14 +358,29 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
 
         n.f1.accept(this, argu);
 
-        // TODO: Make sure the expression inside the [] is an int
-        n.f2.accept(this, argu);
+        // Make sure the expression inside the [] is an int
+        String indexType = n.f2.accept(this, argu);
+        if (Objects.equals("int", indexType) == false) {
+            System.err.println("Array index has to be an integer");
+            System.exit(1);
+        }
 
         n.f3.accept(this, argu);
         n.f4.accept(this, argu);
 
-        // TODO: Check for matching types
-        n.f5.accept(this, argu);
+        // Check for matching types
+        String rightType = n.f5.accept(this, argu);
+        if (Objects.equals(leftType, "boolean[]")) {
+            if (!Objects.equals(rightType, "boolean")) {
+                System.err.println("Invalid type assigned into array \'" + arrayName + "\'");
+                System.exit(1);
+            }
+        } else {
+            if (!Objects.equals(rightType, "int")) {
+                System.err.println("Invalid type assigned into array \'" + arrayName + "\'");
+                System.exit(1);
+            }
+        }
 
         n.f6.accept(this, argu);
         return _ret;
@@ -374,8 +400,12 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
 
-        // TODO: Make sure the type is boolean
-        n.f2.accept(this, argu);
+        // Make sure the type is boolean
+        String ifType = n.f2.accept(this, argu);
+        if (Objects.equals("boolean", ifType) == false) {
+            System.err.println("Expression inside if has to be boolean");
+            System.exit(1);
+        }
 
         n.f3.accept(this, argu);
         n.f4.accept(this, argu);
@@ -396,8 +426,12 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
 
-        // TODO: Make sure the type is boolean
-        n.f2.accept(this, argu);
+        // Make sure the type is boolean
+        String whileType = n.f2.accept(this, argu);
+        if (Objects.equals("boolean", whileType) == false) {
+            System.err.println("Expression inside while has to be boolean");
+            System.exit(1);
+        }
 
         n.f3.accept(this, argu);
         n.f4.accept(this, argu);
@@ -416,8 +450,12 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
 
-        // TODO: check type of print Type can only be int
-        n.f2.accept(this, argu);
+        // Type inside print can only be int
+        String printType = n.f2.accept(this, argu);
+        if (Objects.equals("int", printType) == false) {
+            System.err.println("Expression inside print has to be an integer");
+            System.exit(1);
+        }
 
         n.f3.accept(this, argu);
         n.f4.accept(this, argu);

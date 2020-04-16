@@ -166,4 +166,16 @@ public class mySymbolTable {
 
     }
 
+    public boolean isParent(String child, String parent) {
+        while (classes.get(child).extendsBool == true) {
+            child = classes.get(child).parentClass;
+
+            if (Objects.equals(child, parent)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 }
