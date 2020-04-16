@@ -320,14 +320,13 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         // Check if types are matching
         String rightType = n.f2.accept(this, argu);
         if (Objects.equals(leftType, rightType) == false) {
-            System.err.println("Invalid type assigned to variable \'" + idName + "\'");
-            System.exit(1);
-        }
-
-        // Also check is leftType is a superclass of rightType
-        if (symbolTable.isParent(rightType, leftType) == false) {
-            System.err.println("Invalid type assigned to variable \'" + idName + "\'");
-            System.exit(1);
+            // System.err.println("Invalid type assigned to variable \'" + idName + "\'");
+            // System.exit(1);
+            // Also check is leftType is a superclass of rightType
+            if (symbolTable.isParent(rightType, leftType) == false) {
+                System.err.println("Invalid type assigned to variable \'" + idName + "\'");
+                System.exit(1);
+            }
         }
 
         n.f3.accept(this, argu);
@@ -590,7 +589,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         // Make sure varType is of type int[] or boolean[]
         String varType = n.f0.accept(this, argu);
         if (!Objects.equals("boolean[]", varType) && !Objects.equals("int[]", varType)) {
-            System.err.println("Variable \'" + varType + "\' is not an array but tries to reference an array type");
+            System.err.println("Invalid reference of an array type");
             System.exit(1);
         }
 
@@ -664,7 +663,6 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
 
         if ((arguIndex + 1) == arguList.size()) {
             // There is a new element in the array
-            System.out.println(arguList.get(arguIndex) + " " + arguIndex);
             symbolTable.checkArguments(calledMethName, exprType, arguList.get(arguIndex));
 
             // Remove the last nested function in the argument

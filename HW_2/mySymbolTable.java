@@ -145,33 +145,46 @@ public class mySymbolTable {
                 System.err.println("Wrong arguments when using the method \'" + callMeth + "\'");
                 System.exit(1);
             }
-            System.out.println("Empty args");
         } else {
             // Creating an ArrayList object to hold the argument we want to check
-
             ArrayList<String> argList = new ArrayList<String>();
 
+            // Adding all the argument we have collected to the array
             StringTokenizer arg = new StringTokenizer(args, ",");
             while (arg.hasMoreTokens()) {
                 argList.add(arg.nextToken());
-                // System.out.println(arg.nextToken());
             }
 
-            if ((new ArrayList<>(classes.get(callClass).classMethods.get(callMeth).methodParams.values())
-                    .equals(argList)) == false) {
-                System.err.println("Wrong arguments when using the method \'" + callMeth + "\'");
+            // Firstly checking that the number of arguments matches
+            if (argList.size() != classes.get(callClass).classMethods.get(callMeth).methodParams.size()) {
+                System.err.println("Wrong number of arguments when using the method \'" + callMeth + "\'");
                 System.exit(1);
+            }
+
+            // Here we check that every individual argument matches
+            int index = 0;
+            for (String value : classes.get(callClass).classMethods.get(callMeth).methodParams.values()) {
+                if (Objects.equals(argList.get(index), value) == false) {
+                    if (isParent(argList.get(index), value) == false) {
+                        System.err.println("Wrong arguments when using the method \'" + callMeth + "\'");
+                        System.exit(1);
+                    }
+                }
+
+                index++;
             }
         }
 
     }
 
     public boolean isParent(String child, String parent) {
-        while (classes.get(child).extendsBool == true) {
-            child = classes.get(child).parentClass;
+        if (classes.containsKey(child) == true) {
+            while (classes.get(child).extendsBool == true) {
+                child = classes.get(child).parentClass;
 
-            if (Objects.equals(child, parent)) {
-                return true;
+                if (Objects.equals(child, parent)) {
+                    return true;
+                }
             }
         }
 
