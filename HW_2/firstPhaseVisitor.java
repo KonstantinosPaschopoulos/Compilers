@@ -5,7 +5,7 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
 
     mySymbolTable symbolTable;
 
-    public firstPhaseVisitor(mySymbolTable symTable) {
+    public firstPhaseVisitor(mySymbolTable symTable) throws Exception {
         this.symbolTable = symTable;
     }
 
@@ -29,15 +29,14 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f16 -> "}"
     * f17 -> "}"
     */
-    public String visit(MainClass n, argsObj argu) {
+    public String visit(MainClass n, argsObj argu) throws Exception {
         String _ret = null;
         n.f0.accept(this, argu);
 
         // Inserting the class name to the symbol table
         String className = n.f1.accept(this, argu);
         if (symbolTable.classes.isEmpty() == false) {
-            System.err.println("Error");
-            System.exit(1);
+            throw new Exception("Error");
         }
         classValue value = new classValue(false, "");
         symbolTable.classes.put(className, value);
@@ -81,15 +80,14 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f4 -> ( MethodDeclaration() )*
     * f5 -> "}"
     */
-    public String visit(ClassDeclaration n, argsObj argu) {
+    public String visit(ClassDeclaration n, argsObj argu) throws Exception {
         String _ret = null;
         n.f0.accept(this, argu);
 
         // Adding the class name after checking for duplicates
         String className = n.f1.accept(this, argu);
         if (symbolTable.checkClass(className) == true) {
-            System.err.println("There is already a class with the name \'" + className + "\'");
-            System.exit(1);
+            throw new Exception("There is already a class with the name \'" + className + "\'");
         }
         symbolTable.classes.put(className, new classValue(false, ""));
 
@@ -115,7 +113,7 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f6 -> ( MethodDeclaration() )*
     * f7 -> "}"
     */
-    public String visit(ClassExtendsDeclaration n, argsObj argu) {
+    public String visit(ClassExtendsDeclaration n, argsObj argu) throws Exception {
         String _ret = null;
         n.f0.accept(this, argu);
 
@@ -127,12 +125,10 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
 
         // Two checks: if the parent class has been declared and if the child class is a duplicate
         if (symbolTable.checkClass(parent) == false) {
-            System.err.println("The parent class of \'" + child + "\' has not been declared");
-            System.exit(1);
+            throw new Exception("The parent class of \'" + child + "\' has not been declared");
         }
         if (symbolTable.checkClass(child) == true) {
-            System.err.println("There is already a class with the name \'" + child + "\'");
-            System.exit(1);
+            throw new Exception("There is already a class with the name \'" + child + "\'");
         }
         symbolTable.classes.put(child, new classValue(true, parent));
 
@@ -156,7 +152,7 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f1 -> Identifier()
     * f2 -> ";"
     */
-    public String visit(VarDeclaration n, argsObj argu) {
+    public String visit(VarDeclaration n, argsObj argu) throws Exception {
         String _ret = null;
         String t = n.f0.accept(this, argu);
         String id = n.f1.accept(this, argu);
@@ -165,9 +161,8 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
         if (argu.isClass == true) {
             // Check if variable is already a field in the class
             if (symbolTable.classes.get(argu.className).checkField(id) == true) {
-                System.err.println(
+                throw new Exception(
                         "Variable \'" + id + "\' in class \'" + argu.className + "\' has already been declared");
-                System.exit(1);
             }
 
             // Add field to class
@@ -176,9 +171,8 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
         if (argu.isMethod == true) {
             // Checking if variable is already decleared in parameters or local
             if (symbolTable.classes.get(argu.className).classMethods.get(argu.methName).checkVar(id) == true) {
-                System.err.println(
+                throw new Exception(
                         "Variable \'" + id + "\' in function \'" + argu.methName + "\' has already been declared");
-                System.exit(1);
             }
 
             // Add variable to method
@@ -203,7 +197,7 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f11 -> ";"
     * f12 -> "}"
     */
-    public String visit(MethodDeclaration n, argsObj argu) {
+    public String visit(MethodDeclaration n, argsObj argu) throws Exception {
         String _ret = null;
         n.f0.accept(this, argu);
 
@@ -211,9 +205,8 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
         String methType = n.f1.accept(this, argu);
         String methName = n.f2.accept(this, argu);
         if (symbolTable.classes.get(argu.className).checkMethod(methName) == true) {
-            System.err.println("There is already a method with the name \'" + methName + "\'" + " in the class \'"
+            throw new Exception("There is already a method with the name \'" + methName + "\'" + " in the class \'"
                     + argu.className + "\'");
-            System.exit(1);
         }
         methodValue meth = new methodValue(methType);
         symbolTable.classes.get(argu.className).classMethods.put(methName, meth);
@@ -241,7 +234,7 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f0 -> FormalParameter()
     * f1 -> FormalParameterTail()
     */
-    public String visit(FormalParameterList n, argsObj argu) {
+    public String visit(FormalParameterList n, argsObj argu) throws Exception {
         String _ret = null;
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
@@ -252,16 +245,15 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
      * f0 -> Type()
      * f1 -> Identifier()
      */
-    public String visit(FormalParameter n, argsObj argu) {
+    public String visit(FormalParameter n, argsObj argu) throws Exception {
         String _ret = null;
 
         // Here I check and pass the parameters to the symbol table
         String t = n.f0.accept(this, argu);
         String id = n.f1.accept(this, argu);
         if (symbolTable.classes.get(argu.className).classMethods.get(argu.methName).checkParam(id) == true) {
-            System.err.println(
+            throw new Exception(
                     "Parameter \'" + id + "\' in function \'" + argu.methName + "\' has already been declared");
-            System.exit(1);
         }
         symbolTable.classes.get(argu.className).classMethods.get(argu.methName).methodParams.put(id, t);
 
@@ -271,7 +263,7 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
     /**
      * f0 -> ( FormalParameterTerm() )*
      */
-    public String visit(FormalParameterTail n, argsObj argu) {
+    public String visit(FormalParameterTail n, argsObj argu) throws Exception {
         return n.f0.accept(this, argu);
     }
 
@@ -279,7 +271,7 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
      * f0 -> ","
      * f1 -> FormalParameter()
      */
-    public String visit(FormalParameterTerm n, argsObj argu) {
+    public String visit(FormalParameterTerm n, argsObj argu) throws Exception {
         String _ret = null;
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
@@ -292,7 +284,7 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
     *       | IntegerType()
     *       | Identifier()
     */
-    public String visit(Type n, argsObj argu) {
+    public String visit(Type n, argsObj argu) throws Exception {
         return n.f0.accept(this, argu);
     }
 
@@ -300,7 +292,7 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f0 -> BooleanArrayType()
     *       | IntegerArrayType()
     */
-    public String visit(ArrayType n, argsObj argu) {
+    public String visit(ArrayType n, argsObj argu) throws Exception {
         return n.f0.accept(this, argu);
     }
 
@@ -309,7 +301,7 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
      * f1 -> "["
      * f2 -> "]"
      */
-    public String visit(BooleanArrayType n, argsObj argu) {
+    public String visit(BooleanArrayType n, argsObj argu) throws Exception {
         return n.f0.toString() + n.f1.toString() + n.f2.toString();
     }
 
@@ -318,28 +310,28 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
      * f1 -> "["
      * f2 -> "]"
      */
-    public String visit(IntegerArrayType n, argsObj argu) {
+    public String visit(IntegerArrayType n, argsObj argu) throws Exception {
         return n.f0.toString() + n.f1.toString() + n.f2.toString();
     }
 
     /**
     * f0 -> "boolean"
     */
-    public String visit(BooleanType n, argsObj argu) {
+    public String visit(BooleanType n, argsObj argu) throws Exception {
         return n.f0.toString();
     }
 
     /**
      * f0 -> "int"
      */
-    public String visit(IntegerType n, argsObj argu) {
+    public String visit(IntegerType n, argsObj argu) throws Exception {
         return n.f0.toString();
     }
 
     /**
     * f0 -> <IDENTIFIER>
     */
-    public String visit(Identifier n, argsObj argu) {
+    public String visit(Identifier n, argsObj argu) throws Exception {
         return n.f0.toString(); // Just making sure they are returned as strings
     }
 

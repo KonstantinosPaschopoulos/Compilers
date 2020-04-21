@@ -9,7 +9,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     int arguIndex;
     ArrayList<String> arguList;
 
-    public secondPhaseVisitor(mySymbolTable symTable) {
+    public secondPhaseVisitor(mySymbolTable symTable) throws Exception {
         this.symbolTable = symTable;
         this.arguIndex = -1;
         arguList = new ArrayList<String>();
@@ -35,7 +35,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f16 -> "}"
     * f17 -> "}"
     */
-    public String visit(MainClass n, argsObj argu) {
+    public String visit(MainClass n, argsObj argu) throws Exception {
         String _ret = null;
         n.f0.accept(this, argu);
 
@@ -73,7 +73,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f4 -> ( MethodDeclaration() )*
     * f5 -> "}"
     */
-    public String visit(ClassDeclaration n, argsObj argu) {
+    public String visit(ClassDeclaration n, argsObj argu) throws Exception {
         String _ret = null;
         n.f0.accept(this, argu);
         String className = n.f1.accept(this, argu);
@@ -98,7 +98,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f6 -> ( MethodDeclaration() )*
     * f7 -> "}"
     */
-    public String visit(ClassExtendsDeclaration n, argsObj argu) {
+    public String visit(ClassExtendsDeclaration n, argsObj argu) throws Exception {
         String _ret = null;
         n.f0.accept(this, argu);
         String className = n.f1.accept(this, argu);
@@ -130,7 +130,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f11 -> ";"
     * f12 -> "}"
     */
-    public String visit(MethodDeclaration n, argsObj argu) {
+    public String visit(MethodDeclaration n, argsObj argu) throws Exception {
         String _ret = null;
         n.f0.accept(this, argu);
 
@@ -157,8 +157,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         // Check that return matches with declared type
         String retExpr = n.f10.accept(this, new argsObj(argu.className, methName, true, true));
         if (Objects.equals(retType, retExpr) == false) {
-            System.err.println("Wrong type returned from method \'" + methName + "\'");
-            System.exit(1);
+            throw new Exception("Wrong type returned from method \'" + methName + "\'");
         }
 
         n.f11.accept(this, argu);
@@ -170,7 +169,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f0 -> FormalParameter()
     * f1 -> FormalParameterTail()
     */
-    public String visit(FormalParameterList n, argsObj argu) {
+    public String visit(FormalParameterList n, argsObj argu) throws Exception {
         String _ret = null;
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
@@ -181,7 +180,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f0 -> Type()
     * f1 -> Identifier()
     */
-    public String visit(FormalParameter n, argsObj argu) {
+    public String visit(FormalParameter n, argsObj argu) throws Exception {
         String _ret = null;
 
         // Make sure the type of the parameters is a legal type
@@ -195,7 +194,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     /**
     * f0 -> ( FormalParameterTerm() )*
     */
-    public String visit(FormalParameterTail n, argsObj argu) {
+    public String visit(FormalParameterTail n, argsObj argu) throws Exception {
         return n.f0.accept(this, argu);
     }
 
@@ -203,7 +202,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
      * f0 -> ","
      * f1 -> FormalParameter()
      */
-    public String visit(FormalParameterTerm n, argsObj argu) {
+    public String visit(FormalParameterTerm n, argsObj argu) throws Exception {
         String _ret = null;
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
@@ -215,7 +214,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f1 -> Identifier()
     * f2 -> ";"
     */
-    public String visit(VarDeclaration n, argsObj argu) {
+    public String visit(VarDeclaration n, argsObj argu) throws Exception {
         String _ret = null;
 
         // Making sure the type that was used is legal
@@ -233,7 +232,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     *       | IntegerType()
     *       | Identifier()
     */
-    public String visit(Type n, argsObj argu) {
+    public String visit(Type n, argsObj argu) throws Exception {
         return n.f0.accept(this, argu);
     }
 
@@ -241,7 +240,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f0 -> BooleanArrayType()
     *       | IntegerArrayType()
     */
-    public String visit(ArrayType n, argsObj argu) {
+    public String visit(ArrayType n, argsObj argu) throws Exception {
         return n.f0.accept(this, argu);
     }
 
@@ -250,7 +249,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
      * f1 -> "["
      * f2 -> "]"
      */
-    public String visit(BooleanArrayType n, argsObj argu) {
+    public String visit(BooleanArrayType n, argsObj argu) throws Exception {
         return n.f0.toString() + n.f1.toString() + n.f2.toString();
     }
 
@@ -259,21 +258,21 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
      * f1 -> "["
      * f2 -> "]"
      */
-    public String visit(IntegerArrayType n, argsObj argu) {
+    public String visit(IntegerArrayType n, argsObj argu) throws Exception {
         return n.f0.toString() + n.f1.toString() + n.f2.toString();
     }
 
     /**
     * f0 -> "boolean"
     */
-    public String visit(BooleanType n, argsObj argu) {
+    public String visit(BooleanType n, argsObj argu) throws Exception {
         return n.f0.toString();
     }
 
     /**
      * f0 -> "int"
      */
-    public String visit(IntegerType n, argsObj argu) {
+    public String visit(IntegerType n, argsObj argu) throws Exception {
         return n.f0.toString();
     }
 
@@ -285,7 +284,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     *       | WhileStatement()
     *       | PrintStatement()
     */
-    public String visit(Statement n, argsObj argu) {
+    public String visit(Statement n, argsObj argu) throws Exception {
         return n.f0.accept(this, argu);
     }
 
@@ -294,7 +293,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f1 -> ( Statement() )*
     * f2 -> "}"
     */
-    public String visit(Block n, argsObj argu) {
+    public String visit(Block n, argsObj argu) throws Exception {
         String _ret = null;
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
@@ -308,7 +307,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f2 -> Expression()
     * f3 -> ";"
     */
-    public String visit(AssignmentStatement n, argsObj argu) {
+    public String visit(AssignmentStatement n, argsObj argu) throws Exception {
         String _ret = null;
 
         // Verify that the variable is properly declared and identifiable
@@ -320,12 +319,9 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         // Check if types are matching
         String rightType = n.f2.accept(this, argu);
         if (Objects.equals(leftType, rightType) == false) {
-            // System.err.println("Invalid type assigned to variable \'" + idName + "\'");
-            // System.exit(1);
             // Also check is leftType is a superclass of rightType
             if (symbolTable.isParent(rightType, leftType) == false) {
-                System.err.println("Invalid type assigned to variable \'" + idName + "\'");
-                System.exit(1);
+                throw new Exception("Invalid type assigned to variable \'" + idName + "\'");
             }
         }
 
@@ -342,7 +338,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f5 -> Expression()
     * f6 -> ";"
     */
-    public String visit(ArrayAssignmentStatement n, argsObj argu) {
+    public String visit(ArrayAssignmentStatement n, argsObj argu) throws Exception {
         String _ret = null;
 
         // Verify that the variable has been properly declared
@@ -351,8 +347,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
 
         // leftType can only be type of int[] or boolean[]
         if (!Objects.equals("boolean[]", leftType) && !Objects.equals("int[]", leftType)) {
-            System.err.println("Variable \'" + arrayName + "\' is not an array but tries to reference array type");
-            System.exit(1);
+            throw new Exception("Variable \'" + arrayName + "\' is not an array but tries to reference array type");
         }
 
         n.f1.accept(this, argu);
@@ -360,8 +355,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         // Make sure the expression inside the [] is an int
         String indexType = n.f2.accept(this, argu);
         if (Objects.equals("int", indexType) == false) {
-            System.err.println("Array index has to be an integer");
-            System.exit(1);
+            throw new Exception("Array index has to be an integer");
         }
 
         n.f3.accept(this, argu);
@@ -371,13 +365,11 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         String rightType = n.f5.accept(this, argu);
         if (Objects.equals(leftType, "boolean[]")) {
             if (!Objects.equals(rightType, "boolean")) {
-                System.err.println("Invalid type assigned into array \'" + arrayName + "\'");
-                System.exit(1);
+                throw new Exception("Invalid type assigned into array \'" + arrayName + "\'");
             }
         } else {
             if (!Objects.equals(rightType, "int")) {
-                System.err.println("Invalid type assigned into array \'" + arrayName + "\'");
-                System.exit(1);
+                throw new Exception("Invalid type assigned into array \'" + arrayName + "\'");
             }
         }
 
@@ -394,7 +386,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f5 -> "else"
     * f6 -> Statement()
     */
-    public String visit(IfStatement n, argsObj argu) {
+    public String visit(IfStatement n, argsObj argu) throws Exception {
         String _ret = null;
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
@@ -402,8 +394,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         // Make sure the type is boolean
         String ifType = n.f2.accept(this, argu);
         if (Objects.equals("boolean", ifType) == false) {
-            System.err.println("Expression inside if has to be boolean");
-            System.exit(1);
+            throw new Exception("Expression inside if has to be boolean");
         }
 
         n.f3.accept(this, argu);
@@ -420,7 +411,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f3 -> ")"
     * f4 -> Statement()
     */
-    public String visit(WhileStatement n, argsObj argu) {
+    public String visit(WhileStatement n, argsObj argu) throws Exception {
         String _ret = null;
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
@@ -428,8 +419,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         // Make sure the type is boolean
         String whileType = n.f2.accept(this, argu);
         if (Objects.equals("boolean", whileType) == false) {
-            System.err.println("Expression inside while has to be boolean");
-            System.exit(1);
+            throw new Exception("Expression inside while has to be boolean");
         }
 
         n.f3.accept(this, argu);
@@ -444,7 +434,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f3 -> ")"
     * f4 -> ";"
     */
-    public String visit(PrintStatement n, argsObj argu) {
+    public String visit(PrintStatement n, argsObj argu) throws Exception {
         String _ret = null;
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
@@ -452,8 +442,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         // Type inside print can only be int
         String printType = n.f2.accept(this, argu);
         if (Objects.equals("int", printType) == false) {
-            System.err.println("Expression inside print has to be an integer");
-            System.exit(1);
+            throw new Exception("Expression inside print has to be an integer");
         }
 
         n.f3.accept(this, argu);
@@ -474,7 +463,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     *       | MessageSend()
     *       | Clause()
     */
-    public String visit(Expression n, argsObj argu) {
+    public String visit(Expression n, argsObj argu) throws Exception {
         return n.f0.accept(this, argu).toString();
     }
 
@@ -483,7 +472,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f1 -> "&&"
     * f2 -> Clause()
     */
-    public String visit(AndExpression n, argsObj argu) {
+    public String visit(AndExpression n, argsObj argu) throws Exception {
         String leftType = n.f0.accept(this, argu);
 
         n.f1.accept(this, argu);
@@ -492,8 +481,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
 
         // && can only be between two booleans
         if (!Objects.equals("boolean", leftType) || !Objects.equals("boolean", rightType)) {
-            System.err.println("&& expression has to be between two booleans");
-            System.exit(1);
+            throw new Exception("&& expression has to be between two booleans");
         }
 
         return "boolean";
@@ -504,7 +492,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f1 -> "<"
     * f2 -> PrimaryExpression()
     */
-    public String visit(CompareExpression n, argsObj argu) {
+    public String visit(CompareExpression n, argsObj argu) throws Exception {
         String leftType = n.f0.accept(this, argu);
 
         n.f1.accept(this, argu);
@@ -512,8 +500,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         String rightType = n.f2.accept(this, argu);
         // < can only be between two ints
         if (!Objects.equals("int", leftType) || !Objects.equals("int", rightType)) {
-            System.err.println("< expression has to be between two integers");
-            System.exit(1);
+            throw new Exception("< expression has to be between two integers");
         }
 
         return "boolean";
@@ -524,7 +511,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f1 -> "+"
     * f2 -> PrimaryExpression()
     */
-    public String visit(PlusExpression n, argsObj argu) {
+    public String visit(PlusExpression n, argsObj argu) throws Exception {
         String leftType = n.f0.accept(this, argu);
 
         n.f1.accept(this, argu);
@@ -532,8 +519,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         String rightType = n.f2.accept(this, argu);
         // + can only be between two ints
         if (!Objects.equals("int", leftType) || !Objects.equals("int", rightType)) {
-            System.err.println("+ expression has to be between two integers");
-            System.exit(1);
+            throw new Exception("+ expression has to be between two integers");
         }
 
         return "int";
@@ -544,7 +530,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f1 -> "-"
     * f2 -> PrimaryExpression()
     */
-    public String visit(MinusExpression n, argsObj argu) {
+    public String visit(MinusExpression n, argsObj argu) throws Exception {
         String leftType = n.f0.accept(this, argu);
 
         n.f1.accept(this, argu);
@@ -552,8 +538,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         String rightType = n.f2.accept(this, argu);
         // - can only be between two ints
         if (!Objects.equals("int", leftType) || !Objects.equals("int", rightType)) {
-            System.err.println("- expression has to be between two integers");
-            System.exit(1);
+            throw new Exception("- expression has to be between two integers");
         }
 
         return "int";
@@ -564,7 +549,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f1 -> "*"
     * f2 -> PrimaryExpression()
     */
-    public String visit(TimesExpression n, argsObj argu) {
+    public String visit(TimesExpression n, argsObj argu) throws Exception {
         String leftType = n.f0.accept(this, argu);
 
         n.f1.accept(this, argu);
@@ -572,8 +557,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         String rightType = n.f2.accept(this, argu);
         // * can only be between two ints
         if (!Objects.equals("int", leftType) || !Objects.equals("int", rightType)) {
-            System.err.println("* expression has to be between two integers");
-            System.exit(1);
+            throw new Exception("* expression has to be between two integers");
         }
 
         return "int";
@@ -585,12 +569,11 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f2 -> PrimaryExpression()
     * f3 -> "]"
     */
-    public String visit(ArrayLookup n, argsObj argu) {
+    public String visit(ArrayLookup n, argsObj argu) throws Exception {
         // Make sure varType is of type int[] or boolean[]
         String varType = n.f0.accept(this, argu);
         if (!Objects.equals("boolean[]", varType) && !Objects.equals("int[]", varType)) {
-            System.err.println("Invalid reference of an array type");
-            System.exit(1);
+            throw new Exception("Invalid reference of an array type");
         }
 
         n.f1.accept(this, argu);
@@ -598,8 +581,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         // Make sure the expression inside the [] is an integer
         String inType = n.f2.accept(this, argu);
         if (Objects.equals("int", inType) == false) {
-            System.err.println("The array iterator \'" + inType + "\' is not an integer");
-            System.exit(1);
+            throw new Exception("The array iterator \'" + inType + "\' is not an integer");
         }
 
         n.f3.accept(this, argu);
@@ -617,11 +599,10 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f1 -> "."
     * f2 -> "length"
     */
-    public String visit(ArrayLength n, argsObj argu) {
+    public String visit(ArrayLength n, argsObj argu) throws Exception {
         String exprType = n.f0.accept(this, argu);
         if (!Objects.equals("boolean[]", exprType) && !Objects.equals("int[]", exprType)) {
-            System.err.println("Cannot use the .length operator on a variable that is not an array");
-            System.exit(1);
+            throw new Exception("Cannot use the .length operator on a variable that is not an array");
         }
 
         n.f1.accept(this, argu);
@@ -639,14 +620,13 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f4 -> ( ExpressionList() )?
     * f5 -> ")"
     */
-    public String visit(MessageSend n, argsObj argu) {
+    public String visit(MessageSend n, argsObj argu) throws Exception {
         String exprType = n.f0.accept(this, argu);
 
         // First of make sure it is not one of the basic types
         if (Objects.equals("boolean[]", exprType) || Objects.equals("int[]", exprType)
                 || Objects.equals("int", exprType) || Objects.equals("boolean", exprType)) {
-            System.err.println("Cannot call a method on a variable that is not a class");
-            System.exit(1);
+            throw new Exception("Cannot call a method on a variable that is not a class");
         }
 
         n.f1.accept(this, argu);
@@ -682,7 +662,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
      * f0 -> Expression()
      * f1 -> ExpressionTail()
      */
-    public String visit(ExpressionList n, argsObj argu) {
+    public String visit(ExpressionList n, argsObj argu) throws Exception {
         String _ret = null;
 
         // Create a new entry for the array that holds the argument
@@ -697,7 +677,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     /**
      * f0 -> ( ExpressionTerm() )*
      */
-    public String visit(ExpressionTail n, argsObj argu) {
+    public String visit(ExpressionTail n, argsObj argu) throws Exception {
         return n.f0.accept(this, argu);
     }
 
@@ -705,7 +685,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
      * f0 -> ","
      * f1 -> Expression()
      */
-    public String visit(ExpressionTerm n, argsObj argu) {
+    public String visit(ExpressionTerm n, argsObj argu) throws Exception {
         String _ret = null;
         n.f0.accept(this, argu);
 
@@ -721,7 +701,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f0 -> NotExpression()
     *       | PrimaryExpression()
     */
-    public String visit(Clause n, argsObj argu) {
+    public String visit(Clause n, argsObj argu) throws Exception {
         return n.f0.accept(this, argu);
     }
 
@@ -735,7 +715,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     *       | AllocationExpression()
     *       | BracketExpression()
     */
-    public String visit(PrimaryExpression n, argsObj argu) {
+    public String visit(PrimaryExpression n, argsObj argu) throws Exception {
         String primExpr = n.f0.accept(this, argu);
 
         if (Objects.equals("int", primExpr) || Objects.equals("boolean", primExpr)
@@ -758,7 +738,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     /**
     * f0 -> <INTEGER_LITERAL>
     */
-    public String visit(IntegerLiteral n, argsObj argu) {
+    public String visit(IntegerLiteral n, argsObj argu) throws Exception {
         n.f0.accept(this, argu);
         return "int";
     }
@@ -766,7 +746,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     /**
      * f0 -> "true"
      */
-    public String visit(TrueLiteral n, argsObj argu) {
+    public String visit(TrueLiteral n, argsObj argu) throws Exception {
         n.f0.accept(this, argu);
         return "boolean";
     }
@@ -774,7 +754,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     /**
      * f0 -> "false"
      */
-    public String visit(FalseLiteral n, argsObj argu) {
+    public String visit(FalseLiteral n, argsObj argu) throws Exception {
         n.f0.accept(this, argu);
         return "boolean";
     }
@@ -782,14 +762,14 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     /**
      * f0 -> <IDENTIFIER>
      */
-    public String visit(Identifier n, argsObj argu) {
+    public String visit(Identifier n, argsObj argu) throws Exception {
         return n.f0.toString();
     }
 
     /**
      * f0 -> "this"
      */
-    public String visit(ThisExpression n, argsObj argu) {
+    public String visit(ThisExpression n, argsObj argu) throws Exception {
         return n.f0.toString();
     }
 
@@ -797,7 +777,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f0 -> BooleanArrayAllocationExpression()
     *       | IntegerArrayAllocationExpression()
     */
-    public String visit(ArrayAllocationExpression n, argsObj argu) {
+    public String visit(ArrayAllocationExpression n, argsObj argu) throws Exception {
         return n.f0.accept(this, argu);
     }
 
@@ -808,7 +788,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f3 -> Expression()
     * f4 -> "]"
     */
-    public String visit(BooleanArrayAllocationExpression n, argsObj argu) {
+    public String visit(BooleanArrayAllocationExpression n, argsObj argu) throws Exception {
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
         n.f2.accept(this, argu);
@@ -816,8 +796,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         // Making sure the index expression is an int
         String indexType = n.f3.accept(this, argu);
         if (Objects.equals("int", indexType) == false) {
-            System.err.println("Invalid index expression");
-            System.exit(1);
+            throw new Exception("Invalid index expression");
         }
 
         n.f4.accept(this, argu);
@@ -831,7 +810,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
      * f3 -> Expression()
      * f4 -> "]"
      */
-    public String visit(IntegerArrayAllocationExpression n, argsObj argu) {
+    public String visit(IntegerArrayAllocationExpression n, argsObj argu) throws Exception {
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
         n.f2.accept(this, argu);
@@ -839,8 +818,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         // Making sure the index expression is an int
         String indexType = n.f3.accept(this, argu);
         if (Objects.equals("int", indexType) == false) {
-            System.err.println("Invalid index expression");
-            System.exit(1);
+            throw new Exception("Invalid index expression");
         }
 
         n.f4.accept(this, argu);
@@ -853,14 +831,13 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f2 -> "("
     * f3 -> ")"
     */
-    public String visit(AllocationExpression n, argsObj argu) {
+    public String visit(AllocationExpression n, argsObj argu) throws Exception {
         n.f0.accept(this, argu);
 
         // Making sure the class that is being used has been declared
         String className = n.f1.accept(this, argu);
         if (symbolTable.classes.containsKey(className) == false) {
-            System.err.println("Cannot allocate \'" + className + "\' because it hasn't been declared before");
-            System.exit(1);
+            throw new Exception("Cannot allocate \'" + className + "\' because it hasn't been declared before");
         }
 
         n.f2.accept(this, argu);
@@ -873,14 +850,13 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f0 -> "!"
     * f1 -> Clause()
     */
-    public String visit(NotExpression n, argsObj argu) {
+    public String visit(NotExpression n, argsObj argu) throws Exception {
         n.f0.accept(this, argu);
 
         // The operand to the right of '!' operator has to be boolean
         String clauseType = n.f1.accept(this, argu);
         if (Objects.equals("boolean", clauseType) == false) {
-            System.err.println("Wrong operand type for \'!\' operator");
-            System.exit(1);
+            throw new Exception("Wrong operand type for \'!\' operator");
         }
 
         return "boolean";
@@ -891,7 +867,7 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
     * f1 -> Expression()
     * f2 -> ")"
     */
-    public String visit(BracketExpression n, argsObj argu) {
+    public String visit(BracketExpression n, argsObj argu) throws Exception {
         n.f0.accept(this, argu);
 
         // Making sure to return the type of the bracketed expression

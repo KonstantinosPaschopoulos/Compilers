@@ -18,7 +18,7 @@ public class mySymbolTable {
         return classes.containsKey(name);
     }
 
-    public void polyCheck(String child, String parent) {
+    public void polyCheck(String child, String parent) throws Exception {
         // Iterate through all the parent classes or the child subclass to check for methods
         HashMap<String, methodValue> childMap = classes.get(child).classMethods;
 
@@ -31,24 +31,21 @@ public class mySymbolTable {
                     if (keyC == keyP) {
                         // Check return type
                         if (childMap.get(keyC).returnType != parentMap.get(keyP).returnType) {
-                            System.err.println("The return type of the method \'" + keyC + "\' in the subclass \'"
+                            throw new Exception("The return type of the method \'" + keyC + "\' in the subclass \'"
                                     + child + "\' " + "doesn't match the return type in the original method");
-                            System.exit(1);
                         }
 
                         // Check argument types (ordered)
                         LinkedHashMap<String, String> childParams = childMap.get(keyC).methodParams;
                         LinkedHashMap<String, String> parentParams = parentMap.get(keyP).methodParams;
                         if (parentParams.size() != childParams.size()) {
-                            System.err.println("The arguments of the method \'" + keyC + "\' in the subclass \'" + child
-                                    + "\' " + "don't match the arguments in the original method");
-                            System.exit(1);
+                            throw new Exception("The arguments of the method \'" + keyC + "\' in the subclass \'"
+                                    + child + "\' " + "don't match the arguments in the original method");
                         }
-                        if ((new ArrayList<>(parentParams.entrySet())
-                                .equals(new ArrayList<>(childParams.entrySet()))) == false) {
-                            System.err.println("The arguments of the method \'" + keyC + "\' in the subclass \'" + child
-                                    + "\' " + "don't match the arguments in the original method");
-                            System.exit(1);
+                        if ((new ArrayList<>(parentParams.values())
+                                .equals(new ArrayList<>(childParams.values()))) == false) {
+                            throw new Exception("The arguments of the method \'" + keyC + "\' in the subclass \'"
+                                    + child + "\' " + "don't match the arguments in the original method");
                         }
 
                         // To help later on with the virtual table
@@ -62,7 +59,7 @@ public class mySymbolTable {
         } while (parent != null && !parent.isEmpty());
     }
 
-    public void checkType(String typeId, String name) {
+    public void checkType(String typeId, String name) throws Exception {
         if (Objects.equals("boolean", typeId) || Objects.equals("int", typeId) || Objects.equals("boolean[]", typeId)
                 || Objects.equals("int[]", typeId)) {
             // It's one of the basic types
@@ -72,14 +69,13 @@ public class mySymbolTable {
             if (classes.containsKey(typeId)) {
                 return;
             } else {
-                System.err.println("Cannot identify the type \'" + typeId + "\' of \'" + name + "\'");
-                System.exit(1);
+                throw new Exception("Cannot identify the type \'" + typeId + "\' of \'" + name + "\'");
             }
         }
     }
 
     // Verify that the identifier is properly declared and identifiable
-    public String verifyVar(String name, String methName, String className) {
+    public String verifyVar(String name, String methName, String className) throws Exception {
         if (classes.get(className).classMethods.get(methName).methodLocals.containsKey(name) == true) {
             // First check the local variables of the method
             return classes.get(className).classMethods.get(methName).methodLocals.get(name);
@@ -100,13 +96,11 @@ public class mySymbolTable {
             }
 
             // Could not find the variable
-            System.err.println("The variable \'" + name + "\' has not been declared");
-            System.exit(1);
-            return "error";
+            throw new Exception("The variable \'" + name + "\' has not been declared");
         }
     }
 
-    public String verifyMethod(String methName, String className) {
+    public String verifyMethod(String methName, String className) throws Exception {
         // Trying to find the called method in the class
         if (classes.get(className).checkMethod(methName) == true) {
             return classes.get(className).classMethods.get(methName).returnType;
@@ -122,12 +116,10 @@ public class mySymbolTable {
         }
 
         // Could not find the method
-        System.err.println("The method \'" + methName + "\' has not been declared");
-        System.exit(1);
-        return "error";
+        throw new Exception("The method \'" + methName + "\' has not been declared");
     }
 
-    public void checkArguments(String callMeth, String callClass, String args) {
+    public void checkArguments(String callMeth, String callClass, String args) throws Exception {
         // First of: finding where the method that is called is declared
         if (classes.get(callClass).checkMethod(callMeth) == false) {
             while (classes.get(callClass).extendsBool == true) {
@@ -142,8 +134,7 @@ public class mySymbolTable {
         // Checking that the arguments match
         if (args == null || args.isEmpty()) {
             if (classes.get(callClass).classMethods.get(callMeth).methodParams.size() != 0) {
-                System.err.println("Wrong arguments when using the method \'" + callMeth + "\'");
-                System.exit(1);
+                throw new Exception("Wrong arguments when using the method \'" + callMeth + "\'");
             }
         } else {
             // Creating an ArrayList object to hold the argument we want to check
@@ -157,8 +148,7 @@ public class mySymbolTable {
 
             // Firstly checking that the number of arguments matches
             if (argList.size() != classes.get(callClass).classMethods.get(callMeth).methodParams.size()) {
-                System.err.println("Wrong number of arguments when using the method \'" + callMeth + "\'");
-                System.exit(1);
+                throw new Exception("Wrong number of arguments when using the method \'" + callMeth + "\'");
             }
 
             // Here we check that every individual argument matches
@@ -166,8 +156,7 @@ public class mySymbolTable {
             for (String value : classes.get(callClass).classMethods.get(callMeth).methodParams.values()) {
                 if (Objects.equals(argList.get(index), value) == false) {
                     if (isParent(argList.get(index), value) == false) {
-                        System.err.println("Wrong arguments when using the method \'" + callMeth + "\'");
-                        System.exit(1);
+                        throw new Exception("Wrong arguments when using the method \'" + callMeth + "\'");
                     }
                 }
 

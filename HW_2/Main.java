@@ -1,12 +1,10 @@
 import syntaxtree.*;
-// import visitor.*;
 import java.io.*;
-// import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
         if (args.length == 0) {
-            System.err.println("Usage: java [MainClassName] [file1] [file2] ... [fileN]");
+            System.out.println("Usage: java [MainClassName] [file1] [file2] ... [fileN]");
             System.exit(1);
         }
 
@@ -18,23 +16,27 @@ public class Main {
             mySymbolTable symbolTable;
 
             try {
-
                 fis = new FileInputStream(arg);
                 MiniJavaParser parser = new MiniJavaParser(fis);
                 Goal root = parser.Goal();
-                System.err.println("Program parsed successfully.");
+                System.out.println("Program parsed successfully.");
 
-                symbolTable = new mySymbolTable();
-                firstPhaseVisitor first = new firstPhaseVisitor(symbolTable);
-                root.accept(first, null);
-                System.err.println("First phase successful.");
+                try {
+                    symbolTable = new mySymbolTable();
+                    firstPhaseVisitor first = new firstPhaseVisitor(symbolTable);
+                    root.accept(first, null);
+                    System.out.println("First phase successful.");
 
-                fis = new FileInputStream(arg);
-                parser = new MiniJavaParser(fis);
-                root = parser.Goal();
-                secondPhaseVisitor second = new secondPhaseVisitor(symbolTable);
-                root.accept(second, null);
-                System.err.println("Second phase also successful.");
+                    fis = new FileInputStream(arg);
+                    parser = new MiniJavaParser(fis);
+                    root = parser.Goal();
+                    secondPhaseVisitor second = new secondPhaseVisitor(symbolTable);
+                    root.accept(second, null);
+                    System.out.println("Second phase also successful.");
+                } catch (Exception ex) {
+                    System.out.println("Error: " + ex.getMessage());
+                    continue;
+                }
             } catch (ParseException ex) {
                 System.out.println(ex.getMessage());
             } catch (FileNotFoundException ex) {
