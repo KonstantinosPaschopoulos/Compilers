@@ -172,7 +172,6 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
 
             // Add field to class
             symbolTable.classes.get(argu.className).classFields.put(id, t);
-            System.out.println("added var in class " + id);
         }
         if (argu.isMethod == true) {
             // Checking if variable is already decleared in parameters or local
@@ -184,7 +183,6 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
 
             // Add variable to method
             symbolTable.classes.get(argu.className).classMethods.get(argu.methName).methodLocals.put(id, t);
-            System.out.println("added var " + id);
         }
 
         return _ret;
@@ -266,7 +264,6 @@ public class firstPhaseVisitor extends GJDepthFirst<String, argsObj> {
             System.exit(1);
         }
         symbolTable.classes.get(argu.className).classMethods.get(argu.methName).methodParams.put(id, t);
-        System.out.println("added param " + id);
 
         return _ret;
     }
