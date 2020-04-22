@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -21,10 +20,10 @@ public class mySymbolTable {
 
     public void polyCheck(String child, String parent) throws Exception {
         // Iterate through all the parent classes or the child subclass to check for methods
-        HashMap<String, methodValue> childMap = classes.get(child).classMethods;
+        LinkedHashMap<String, methodValue> childMap = classes.get(child).classMethods;
 
         do {
-            HashMap<String, methodValue> parentMap = classes.get(parent).classMethods;
+            LinkedHashMap<String, methodValue> parentMap = classes.get(parent).classMethods;
 
             // Iterate through the methods to see if any have been defined again in the child class
             for (String keyC : childMap.keySet()) {

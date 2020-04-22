@@ -9,8 +9,9 @@ public class Main {
         }
 
         for (String arg : args) {
-            System.out.println("---------------------------------------------");
+            System.out.println("************************************************");
             System.out.println("Parsing file: " + arg);
+            System.out.println("");
 
             FileInputStream fis = null;
             mySymbolTable symbolTable;
@@ -19,20 +20,17 @@ public class Main {
                 fis = new FileInputStream(arg);
                 MiniJavaParser parser = new MiniJavaParser(fis);
                 Goal root = parser.Goal();
-                System.out.println("Program parsed successfully.");
 
                 try {
                     symbolTable = new mySymbolTable();
                     firstPhaseVisitor first = new firstPhaseVisitor(symbolTable);
                     root.accept(first, null);
-                    System.out.println("First phase successful.");
 
                     fis = new FileInputStream(arg);
                     parser = new MiniJavaParser(fis);
                     root = parser.Goal();
                     secondPhaseVisitor second = new secondPhaseVisitor(symbolTable);
                     root.accept(second, null);
-                    System.out.println("Second phase also successful.");
 
                     // Traversing the symbol table one last time to print the offsets
                     symbolTable.printOffsets();
