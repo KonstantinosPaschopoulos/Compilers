@@ -182,21 +182,35 @@ public class mySymbolTable {
 
     public void printOffsets() {
         boolean flag = true;
+        int varSum = 0;
+        int methSum = 0;
+        LinkedHashMap<String, Integer> varOffset = new LinkedHashMap<String, Integer>();
+        LinkedHashMap<String, Integer> methOffset = new LinkedHashMap<String, Integer>();
 
         for (Map.Entry<String, classValue> entry : classes.entrySet()) {
+            String key = entry.getKey();
+            classValue value = entry.getValue();
+
             // For each file skip the first class
             if (flag) {
+                varOffset.put(key, 0);
+                methOffset.put(key, 0);
+
                 flag = false;
                 continue;
             }
 
-            String key = entry.getKey();
-            classValue value = entry.getValue();
-
             System.out.println("-----------Class " + key + "-----------");
 
+            // Make sure the offset table starts at the correct offset
+            varSum = 0;
+            methSum = 0;
+            if (value.extendsBool) {
+                varSum = varOffset.get(value.parentClass);
+                methSum = methOffset.get(value.parentClass);
+            }
+
             System.out.println("--Variables---");
-            int varSum = 0;
             for (Map.Entry<String, String> varEntry : value.classFields.entrySet()) {
                 String varKey = varEntry.getKey();
                 String varValue = varEntry.getValue();
@@ -213,7 +227,6 @@ public class mySymbolTable {
             }
 
             System.out.println("---Methods---");
-            int methSum = 0;
             for (Map.Entry<String, methodValue> methEntry : value.classMethods.entrySet()) {
                 String methKey = methEntry.getKey();
                 methodValue methValue = methEntry.getValue();
@@ -226,6 +239,9 @@ public class mySymbolTable {
                 System.out.println(key + "." + methKey + " : " + methSum);
                 methSum += 8;
             }
+
+            varOffset.put(key, varSum);
+            methOffset.put(key, methSum);
 
             System.out.println("");
         }
