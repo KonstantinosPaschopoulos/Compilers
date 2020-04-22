@@ -33,6 +33,9 @@ public class Main {
                     secondPhaseVisitor second = new secondPhaseVisitor(symbolTable);
                     root.accept(second, null);
                     System.out.println("Second phase also successful.");
+
+                    // Traversing the symbol table one last time to print the offsets
+                    symbolTable.printOffsets();
                 } catch (Exception ex) {
                     System.out.println("Error: " + ex.getMessage());
                     continue;

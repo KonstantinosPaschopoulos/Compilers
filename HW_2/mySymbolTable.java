@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.StringTokenizer;
 
@@ -178,6 +179,57 @@ public class mySymbolTable {
         }
 
         return false;
+    }
+
+    public void printOffsets() {
+        boolean flag = true;
+
+        for (Map.Entry<String, classValue> entry : classes.entrySet()) {
+            // For each file skip the first class
+            if (flag) {
+                flag = false;
+                continue;
+            }
+
+            String key = entry.getKey();
+            classValue value = entry.getValue();
+
+            System.out.println("-----------Class " + key + "-----------");
+
+            System.out.println("--Variables---");
+            int varSum = 0;
+            for (Map.Entry<String, String> varEntry : value.classFields.entrySet()) {
+                String varKey = varEntry.getKey();
+                String varValue = varEntry.getValue();
+
+                System.out.println(key + "." + varKey + " : " + varSum);
+
+                if (Objects.equals(varValue, "int")) {
+                    varSum += 4;
+                } else if (Objects.equals(varValue, "boolean")) {
+                    varSum += 1;
+                } else {
+                    varSum += 8;
+                }
+            }
+
+            System.out.println("---Methods---");
+            int methSum = 0;
+            for (Map.Entry<String, methodValue> methEntry : value.classMethods.entrySet()) {
+                String methKey = methEntry.getKey();
+                methodValue methValue = methEntry.getValue();
+
+                if (methValue.isDerived == true) {
+                    // Skip this one
+                    continue;
+                }
+
+                System.out.println(key + "." + methKey + " : " + methSum);
+                methSum += 8;
+            }
+
+            System.out.println("");
+        }
     }
 
 }
