@@ -157,7 +157,10 @@ public class secondPhaseVisitor extends GJDepthFirst<String, argsObj> {
         // Check that return matches with declared type
         String retExpr = n.f10.accept(this, new argsObj(argu.className, methName, true, true));
         if (Objects.equals(retType, retExpr) == false) {
-            throw new Exception("Wrong type returned from method \'" + methName + "\'");
+            // Also check is retType is a superclass of retExpr
+            if (symbolTable.isParent(retExpr, retType) == false) {
+                throw new Exception("Wrong type returned from method \'" + methName + "\'");
+            }
         }
 
         n.f11.accept(this, argu);
