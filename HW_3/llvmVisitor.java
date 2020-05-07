@@ -30,10 +30,6 @@ public class llvmVisitor extends GJDepthFirst<String, String> {
         } else {
             myF.createNewFile();
         }
-
-        emit("yeet" + fileName + "\n");
-        emit("yeet" + fileName + "\n");
-        emit("yeet" + fileName + "\n");
     }
 
     private void emit(String buffer) {
@@ -49,6 +45,32 @@ public class llvmVisitor extends GJDepthFirst<String, String> {
         }
     }
 
+    private void boilerplate() {
+        emit("\ndeclare i8* @calloc(i32, i32)\n");
+        emit("declare i32 @printf(i8*, ...)\n");
+        emit("declare void @exit(i32)\n\n");
+        emit("@_cint = constant [4 x i8] c\"%d\\0a\\00\"\n");
+        emit("@_cOOB = constant [15 x i8] c\"Out of bounds\\0a\\00\"\n");
+        emit("@_cNSZ = constant [15 x i8] c\"Negative size\\0a\\00\"\n\n");
+        emit("define void @print_int(i32 %i) {\n");
+        emit("    %_str = bitcast [4 x i8]* @_cint to i8*\n");
+        emit("    call i32 (i8*, ...) @printf(i8* %_str, i32 %i)\n");
+        emit("    ret void\n");
+        emit("}\n\n");
+        emit("define void @throw_oob() {\n");
+        emit("    %_str = bitcast [15 x i8]* @_cOOB to i8*\n");
+        emit("    call i32 (i8*, ...) @printf(i8* %_str)\n");
+        emit("    call void @exit(i32 1)\n");
+        emit("    ret void\n");
+        emit("}\n\n");
+        emit("define void @throw_nsz() {\n");
+        emit("    %_str = bitcast [15 x i8]* @_cNSZ to i8*\n");
+        emit("    call i32 (i8*, ...) @printf(i8* %_str)\n");
+        emit("    call void @exit(i32 1)\n");
+        emit("    ret void\n");
+        emit("}\n\n");
+    }
+
     /**
     * f0 -> MainClass()
     * f1 -> ( TypeDeclaration() )*
@@ -60,6 +82,7 @@ public class llvmVisitor extends GJDepthFirst<String, String> {
         // Add vtable on top of file
 
         // Add boilerplate
+        boilerplate();
 
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
