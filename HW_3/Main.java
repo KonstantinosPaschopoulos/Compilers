@@ -32,8 +32,13 @@ public class Main {
                     secondPhaseVisitor second = new secondPhaseVisitor(symbolTable);
                     root.accept(second, null);
 
-                    // Traversing the symbol table one last time to print the offsets
-                    symbolTable.printOffsets();
+                    // symbolTable.printOffsets();
+
+                    fis = new FileInputStream(arg);
+                    parser = new MiniJavaParser(fis);
+                    root = parser.Goal();
+                    llvmVisitor llvm = new llvmVisitor(symbolTable, arg);
+                    root.accept(llvm, null);
                 } catch (Exception ex) {
                     System.out.println("Error: " + ex.getMessage());
                     continue;
