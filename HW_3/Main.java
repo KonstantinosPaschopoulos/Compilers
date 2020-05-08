@@ -32,8 +32,6 @@ public class Main {
                     secondPhaseVisitor second = new secondPhaseVisitor(symbolTable);
                     root.accept(second, null);
 
-                    // symbolTable.printOffsets();
-
                     fis = new FileInputStream(arg);
                     parser = new MiniJavaParser(fis);
                     root = parser.Goal();

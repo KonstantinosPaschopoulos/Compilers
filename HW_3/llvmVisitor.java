@@ -193,4 +193,53 @@ public class llvmVisitor extends GJDepthFirst<String, String> {
         return _ret;
     }
 
+    /**
+    * f0 -> "class"
+    * f1 -> Identifier()
+    * f2 -> "{"
+    * f3 -> "public"
+    * f4 -> "static"
+    * f5 -> "void"
+    * f6 -> "main"
+    * f7 -> "("
+    * f8 -> "String"
+    * f9 -> "["
+    * f10 -> "]"
+    * f11 -> Identifier()
+    * f12 -> ")"
+    * f13 -> "{"
+    * f14 -> ( VarDeclaration() )*
+    * f15 -> ( Statement() )*
+    * f16 -> "}"
+    * f17 -> "}"
+    */
+    public String visit(MainClass n, String argu) throws Exception {
+        String _ret = null;
+
+        emit("define i32 @main() {\n");
+
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+        n.f2.accept(this, argu);
+        n.f3.accept(this, argu);
+        n.f4.accept(this, argu);
+        n.f5.accept(this, argu);
+        n.f6.accept(this, argu);
+        n.f7.accept(this, argu);
+        n.f8.accept(this, argu);
+        n.f9.accept(this, argu);
+        n.f10.accept(this, argu);
+        n.f11.accept(this, argu);
+        n.f12.accept(this, argu);
+        n.f13.accept(this, argu);
+        n.f14.accept(this, argu);
+        n.f15.accept(this, argu);
+        n.f16.accept(this, argu);
+        n.f17.accept(this, argu);
+
+        emit("\nret i32 0\n}\n");
+
+        return _ret;
+    }
+
 }
