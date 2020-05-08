@@ -242,4 +242,41 @@ public class llvmVisitor extends GJDepthFirst<String, String> {
         return _ret;
     }
 
+    /**
+    * f0 -> Type()
+    * f1 -> Identifier()
+    * f2 -> ";"
+    */
+    public String visit(VarDeclaration n, String argu) throws Exception {
+        String _ret = null;
+
+        // Just need to emit an alloca
+        String llvm_code = "%";
+
+        String type = n.f0.accept(this, argu);
+        String id = n.f1.accept(this, argu);
+
+        // Adding the name of the var with '%' in front
+        llvm_code += id + " = alloca ";
+
+        // Adding the type
+        if (Objects.equals(type, "int")) {
+            llvm_code += "i32";
+        } else if (Objects.equals(type, "int[]")) {
+            llvm_code += "i32*";
+        } else if (Objects.equals(type, "boolean")) {
+            llvm_code += "i1";
+        } else if (Objects.equals(type, "boolean[]")) {
+            llvm_code += "i8*";
+        } else {
+            llvm_code += "i8*";
+        }
+        llvm_code += "\n";
+
+        emit(llvm_code);
+
+        n.f2.accept(this, argu);
+        return _ret;
+    }
+
 }
