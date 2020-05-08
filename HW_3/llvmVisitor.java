@@ -2,6 +2,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
 import syntaxtree.*;
 import visitor.GJDepthFirst;
 
@@ -71,6 +74,105 @@ public class llvmVisitor extends GJDepthFirst<String, String> {
         emit("}\n\n");
     }
 
+    private void vtable_emit() {
+        boolean flag = true;
+        // The map contains for each className the function names and LLVM code
+        LinkedHashMap<String, LinkedHashMap<String, String>> vtable = new LinkedHashMap<String, LinkedHashMap<String, String>>();
+
+        for (Map.Entry<String, classValue> entry : symbolTable.classes.entrySet()) {
+            String className = entry.getKey();
+            classValue classValue = entry.getValue();
+
+            // The main class doesn't need much work
+            if (flag) {
+                emit("@." + className + "_vtable = global [0 x i8*] []\n");
+
+                flag = false;
+                continue;
+            }
+
+            emit("\n@." + className + "_vtable = global ");
+
+            LinkedHashMap<String, String> functionValues = new LinkedHashMap<String, String>();
+            vtable.put(className, functionValues);
+
+            // If the current class is derived copy all the function from the entry of the parent class before adding any more functions
+            if (classValue.extendsBool) {
+                vtable.get(className).putAll(vtable.get(classValue.parentClass));
+            }
+
+            // Loop through the functions of the current class
+            for (Map.Entry<String, methodValue> methEntry : classValue.classMethods.entrySet()) {
+                String methName = methEntry.getKey();
+                methodValue methValue = methEntry.getValue();
+
+                // Create the LLVM code for the vtable
+                String llvm_code = "i8* bitcast (";
+
+                // Adding the return value
+                if (Objects.equals(methValue.returnType, "int")) {
+                    llvm_code += "i32 (";
+                } else if (Objects.equals(methValue.returnType, "int[]")) {
+                    llvm_code += "i32* (";
+                } else if (Objects.equals(methValue.returnType, "boolean")) {
+                    llvm_code += "i1 (";
+                } else if (Objects.equals(methValue.returnType, "boolean[]")) {
+                    llvm_code += "i8* (";
+                } else {
+                    llvm_code += "i8* (";
+                }
+
+                // First adding the "this" pointer
+                llvm_code += "i8*";
+                // Adding the rest of the parameters
+                for (Map.Entry<String, String> paramEntry : methValue.methodParams.entrySet()) {
+                    String paramValue = paramEntry.getValue();
+
+                    if (Objects.equals(paramValue, "int")) {
+                        llvm_code += ",i32";
+                    } else if (Objects.equals(paramValue, "int[]")) {
+                        llvm_code += ",i32*";
+                    } else if (Objects.equals(paramValue, "boolean")) {
+                        llvm_code += ",i1";
+                    } else if (Objects.equals(paramValue, "boolean[]")) {
+                        llvm_code += ",i8*";
+                    } else {
+                        llvm_code += ",i8*";
+                    }
+                }
+
+                llvm_code += ")* @" + className + "." + methName + " to i8*)";
+
+                if (vtable.get(className).containsKey(methName)) {
+                    // Replace the LLVM code
+                    vtable.get(className).replace(methName, llvm_code);
+                } else {
+                    // Add the new key and value
+                    vtable.get(className).put(methName, llvm_code);
+                }
+            }
+
+            // Add how many functions are in the class
+            emit("[" + vtable.get(className).size() + " x i8*] [\n");
+
+            // Print the details of each function
+            boolean emit_flag = true;
+            for (Map.Entry<String, String> funcInfo : vtable.get(className).entrySet()) {
+                String llvmCode = funcInfo.getValue();
+
+                if (emit_flag) {
+                    emit("    " + llvmCode);
+                    emit_flag = false;
+                    continue;
+                }
+
+                emit(",\n    " + llvmCode);
+            }
+
+            emit("\n]\n");
+        }
+    }
+
     /**
     * f0 -> MainClass()
     * f1 -> ( TypeDeclaration() )*
@@ -79,7 +181,8 @@ public class llvmVisitor extends GJDepthFirst<String, String> {
     public String visit(Goal n, String argu) throws Exception {
         String _ret = null;
 
-        // Add vtable on top of file
+        // Add vtables on top of file
+        vtable_emit();
 
         // Add boilerplate
         boilerplate();
