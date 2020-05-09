@@ -356,8 +356,22 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         n.f5.accept(this, argu);
         emit(") {\n");
 
+        // Allocate the parameters
+        for (Map.Entry<String, String> paramEntry : symbolTable.classes.get(argu.className).classMethods
+                .get(methId).methodParams.entrySet()) {
+            String paramName = paramEntry.getKey();
+            String paramType = paramEntry.getValue();
+
+            emit("\t%" + paramName + " = alloca " + emitType(paramType) + "\n");
+            emit("\tstore " + emitType(paramType) + " %." + paramName + ", " + emitType(paramType) + "* %" + paramName
+                    + "\n\n");
+        }
+
         n.f6.accept(this, argu);
+
+        // Allocation of local variables
         n.f7.accept(this, argu);
+
         n.f8.accept(this, argu);
         n.f9.accept(this, argu);
         n.f10.accept(this, argu);
