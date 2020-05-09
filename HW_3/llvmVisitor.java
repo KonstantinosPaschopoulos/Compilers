@@ -48,6 +48,21 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         }
     }
 
+    private String emitType(String type) {
+        if (Objects.equals(type, "int")) {
+            return "i32";
+        } else if (Objects.equals(type, "int[]")) {
+            return "i32*";
+        } else if (Objects.equals(type, "boolean")) {
+            return "i1";
+        } else if (Objects.equals(type, "boolean[]")) {
+            return "i8*";
+        } else {
+            // For classes objects
+            return "i8*";
+        }
+    }
+
     private void boilerplate() {
         emit("\ndeclare i8* @calloc(i32, i32)\n");
         emit("declare i32 @printf(i8*, ...)\n");
@@ -110,17 +125,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
                 String llvm_code = "i8* bitcast (";
 
                 // Adding the return value
-                if (Objects.equals(methValue.returnType, "int")) {
-                    llvm_code += "i32 (";
-                } else if (Objects.equals(methValue.returnType, "int[]")) {
-                    llvm_code += "i32* (";
-                } else if (Objects.equals(methValue.returnType, "boolean")) {
-                    llvm_code += "i1 (";
-                } else if (Objects.equals(methValue.returnType, "boolean[]")) {
-                    llvm_code += "i8* (";
-                } else {
-                    llvm_code += "i8* (";
-                }
+                llvm_code += emitType(methValue.returnType) + " (";
 
                 // First adding the "this" pointer
                 llvm_code += "i8*";
@@ -128,17 +133,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
                 for (Map.Entry<String, String> paramEntry : methValue.methodParams.entrySet()) {
                     String paramValue = paramEntry.getValue();
 
-                    if (Objects.equals(paramValue, "int")) {
-                        llvm_code += ",i32";
-                    } else if (Objects.equals(paramValue, "int[]")) {
-                        llvm_code += ",i32*";
-                    } else if (Objects.equals(paramValue, "boolean")) {
-                        llvm_code += ",i1";
-                    } else if (Objects.equals(paramValue, "boolean[]")) {
-                        llvm_code += ",i8*";
-                    } else {
-                        llvm_code += ",i8*";
-                    }
+                    llvm_code += "," + emitType(paramValue);
                 }
 
                 llvm_code += ")* @" + className + "." + methName + " to i8*)";
@@ -245,7 +240,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         n.f16.accept(this, argu);
         n.f17.accept(this, argu);
 
-        emit("\nret i32 0\n}\n");
+        emit("\tret i32 0\n}\n\n");
 
         return _ret;
     }
@@ -320,22 +315,72 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         llvm_code += id + " = alloca ";
 
         // Adding the type
-        if (Objects.equals(type, "int")) {
-            llvm_code += "i32";
-        } else if (Objects.equals(type, "int[]")) {
-            llvm_code += "i32*";
-        } else if (Objects.equals(type, "boolean")) {
-            llvm_code += "i1";
-        } else if (Objects.equals(type, "boolean[]")) {
-            llvm_code += "i8*";
-        } else {
-            llvm_code += "i8*";
-        }
+        llvm_code += emitType(type);
         llvm_code += "\n";
 
-        emit(llvm_code);
+        emit("\t" + llvm_code);
 
         n.f2.accept(this, argu);
+        return _ret;
+    }
+
+    /**
+    * f0 -> "public"
+    * f1 -> Type()
+    * f2 -> Identifier()
+    * f3 -> "("
+    * f4 -> ( FormalParameterList() )?
+    * f5 -> ")"
+    * f6 -> "{"
+    * f7 -> ( VarDeclaration() )*
+    * f8 -> ( Statement() )*
+    * f9 -> "return"
+    * f10 -> Expression()
+    * f11 -> ";"
+    * f12 -> "}"
+    */
+    public String visit(MethodDeclaration n, argsObj argu) throws Exception {
+        String _ret = null;
+        n.f0.accept(this, argu);
+
+        String retType = n.f1.accept(this, argu);
+        String methId = n.f2.accept(this, argu);
+
+        // Emiting the function declaration
+        emit("define " + emitType(retType) + " @" + argu.className + "." + methId);
+
+        // Emit the function parameters
+        emit("(i8* %this");
+        n.f3.accept(this, argu);
+        n.f4.accept(this, argu);
+        n.f5.accept(this, argu);
+        emit(") {\n");
+
+        n.f6.accept(this, argu);
+        n.f7.accept(this, argu);
+        n.f8.accept(this, argu);
+        n.f9.accept(this, argu);
+        n.f10.accept(this, argu);
+        n.f11.accept(this, argu);
+        n.f12.accept(this, argu);
+
+        emit("}\n\n");
+
+        return _ret;
+    }
+
+    /**
+    * f0 -> Type()
+    * f1 -> Identifier()
+    */
+    public String visit(FormalParameter n, argsObj argu) throws Exception {
+        String _ret = null;
+
+        String paramType = n.f0.accept(this, argu);
+        String paramId = n.f1.accept(this, argu);
+
+        emit(", " + emitType(paramType) + " %." + paramId);
+
         return _ret;
     }
 
