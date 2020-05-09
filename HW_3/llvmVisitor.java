@@ -8,7 +8,7 @@ import java.util.Objects;
 import syntaxtree.*;
 import visitor.GJDepthFirst;
 
-public class llvmVisitor extends GJDepthFirst<String, String> {
+public class llvmVisitor extends GJDepthFirst<String, argsObj> {
 
     mySymbolTable symbolTable;
     String fileName;
@@ -178,7 +178,7 @@ public class llvmVisitor extends GJDepthFirst<String, String> {
     * f1 -> ( TypeDeclaration() )*
     * f2 -> <EOF>
     */
-    public String visit(Goal n, String argu) throws Exception {
+    public String visit(Goal n, argsObj argu) throws Exception {
         String _ret = null;
 
         // Add vtables on top of file
@@ -213,18 +213,23 @@ public class llvmVisitor extends GJDepthFirst<String, String> {
     * f16 -> "}"
     * f17 -> "}"
     */
-    public String visit(MainClass n, String argu) throws Exception {
+    public String visit(MainClass n, argsObj argu) throws Exception {
         String _ret = null;
 
         emit("define i32 @main() {\n");
 
         n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
+
+        String classId = n.f1.accept(this, argu);
+
         n.f2.accept(this, argu);
         n.f3.accept(this, argu);
         n.f4.accept(this, argu);
         n.f5.accept(this, argu);
+
         n.f6.accept(this, argu);
+        String methId = "main";
+
         n.f7.accept(this, argu);
         n.f8.accept(this, argu);
         n.f9.accept(this, argu);
@@ -232,8 +237,11 @@ public class llvmVisitor extends GJDepthFirst<String, String> {
         n.f11.accept(this, argu);
         n.f12.accept(this, argu);
         n.f13.accept(this, argu);
-        n.f14.accept(this, argu);
-        n.f15.accept(this, argu);
+
+        // The only two that emit code
+        n.f14.accept(this, new argsObj(classId, methId, true, true));
+        n.f15.accept(this, new argsObj(classId, methId, true, true));
+
         n.f16.accept(this, argu);
         n.f17.accept(this, argu);
 
@@ -243,11 +251,63 @@ public class llvmVisitor extends GJDepthFirst<String, String> {
     }
 
     /**
+    * f0 -> "class"
+    * f1 -> Identifier()
+    * f2 -> "{"
+    * f3 -> ( VarDeclaration() )*
+    * f4 -> ( MethodDeclaration() )*
+    * f5 -> "}"
+    */
+    public String visit(ClassDeclaration n, argsObj argu) throws Exception {
+        String _ret = null;
+        n.f0.accept(this, argu);
+
+        String classId = n.f1.accept(this, argu);
+
+        n.f2.accept(this, argu);
+
+        // We don't need to visit the f3 node only the method declerations
+        // n.f3.accept(this, argu);
+        n.f4.accept(this, new argsObj(classId, "", true, false));
+
+        n.f5.accept(this, argu);
+        return _ret;
+    }
+
+    /**
+    * f0 -> "class"
+    * f1 -> Identifier()
+    * f2 -> "extends"
+    * f3 -> Identifier()
+    * f4 -> "{"
+    * f5 -> ( VarDeclaration() )*
+    * f6 -> ( MethodDeclaration() )*
+    * f7 -> "}"
+    */
+    public String visit(ClassExtendsDeclaration n, argsObj argu) throws Exception {
+        String _ret = null;
+        n.f0.accept(this, argu);
+
+        String classId = n.f1.accept(this, argu);
+
+        n.f2.accept(this, argu);
+        n.f3.accept(this, argu);
+        n.f4.accept(this, argu);
+
+        // Only visit the method declarations
+        // n.f5.accept(this, argu);
+        n.f6.accept(this, new argsObj(classId, "", true, false));
+
+        n.f7.accept(this, argu);
+        return _ret;
+    }
+
+    /**
     * f0 -> Type()
     * f1 -> Identifier()
     * f2 -> ";"
     */
-    public String visit(VarDeclaration n, String argu) throws Exception {
+    public String visit(VarDeclaration n, argsObj argu) throws Exception {
         String _ret = null;
 
         // Just need to emit an alloca
@@ -277,6 +337,63 @@ public class llvmVisitor extends GJDepthFirst<String, String> {
 
         n.f2.accept(this, argu);
         return _ret;
+    }
+
+    /**
+    * f0 -> ArrayType()
+    *       | BooleanType()
+    *       | IntegerType()
+    *       | Identifier()
+    */
+    public String visit(Type n, argsObj argu) throws Exception {
+        return n.f0.accept(this, argu);
+    }
+
+    /**
+    * f0 -> BooleanArrayType()
+    *       | IntegerArrayType()
+    */
+    public String visit(ArrayType n, argsObj argu) throws Exception {
+        return n.f0.accept(this, argu);
+    }
+
+    /**
+     * f0 -> "boolean"
+     * f1 -> "["
+     * f2 -> "]"
+     */
+    public String visit(BooleanArrayType n, argsObj argu) throws Exception {
+        return n.f0.toString() + n.f1.toString() + n.f2.toString();
+    }
+
+    /**
+     * f0 -> "int"
+     * f1 -> "["
+     * f2 -> "]"
+     */
+    public String visit(IntegerArrayType n, argsObj argu) throws Exception {
+        return n.f0.toString() + n.f1.toString() + n.f2.toString();
+    }
+
+    /**
+    * f0 -> "boolean"
+    */
+    public String visit(BooleanType n, argsObj argu) throws Exception {
+        return n.f0.toString();
+    }
+
+    /**
+     * f0 -> "int"
+     */
+    public String visit(IntegerType n, argsObj argu) throws Exception {
+        return n.f0.toString();
+    }
+
+    /**
+    * f0 -> <IDENTIFIER>
+    */
+    public String visit(Identifier n, argsObj argu) throws Exception {
+        return n.f0.toString();
     }
 
 }
