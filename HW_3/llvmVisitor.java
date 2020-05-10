@@ -2,7 +2,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import syntaxtree.*;
@@ -67,14 +69,6 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         }
     }
 
-    private boolean isLocal(String idName, String methName, String className) {
-        if (this.symbolTable.classes.get(className).classMethods.get(methName).checkVar(idName)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     private String getReg() {
         String retReg = "%_" + Integer.toString(regCount);
         regCount++;
@@ -100,7 +94,42 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     }
 
     private String getOffset(String className, String varName) {
+        int offset = 0;
 
+        // First I add all the parent classes and the original class to a list with the supermost class on top
+        List<String> classList = new ArrayList<String>();
+        classList.add(0, className);
+        while (symbolTable.classes.get(className).extendsBool) {
+            className = symbolTable.classes.get(className).parentClass;
+
+            classList.add(0, className);
+        }
+
+        // Then I iterate through all the classes I added to the list
+        for (int i = 0; i < classList.size(); i++) {
+            // For every class that is in the list I iterate through their fields and calculate the offset
+            for (Map.Entry<String, String> classFields : symbolTable.classes.get(classList.get(i)).classFields
+                    .entrySet()) {
+                String fieldName = classFields.getKey();
+                String fieldType = classFields.getValue();
+
+                // When I reach the 'varName' field I return the calculated value
+                if (Objects.equals(fieldName, varName)) {
+                    offset += 8; // Adding 8 because of the vtable that is in the front
+                    return Integer.toString(offset);
+                }
+
+                if (Objects.equals(fieldType, "int")) {
+                    offset += 4;
+                } else if (Objects.equals(fieldType, "boolean")) {
+                    offset += 1;
+                } else {
+                    offset += 8;
+                }
+            }
+        }
+
+        return null;
     }
 
     private void boilerplate() {
@@ -413,12 +442,12 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         n.f7.accept(this, argu);
 
         // TODO: Statement expressions
-        n.f8.accept(this, argu);
+        n.f8.accept(this, new argsObj(argu.className, methId, true, true));
 
         n.f9.accept(this, argu);
 
         // TODO: Return expression
-        n.f10.accept(this, argu);
+        n.f10.accept(this, new argsObj(argu.className, methId, true, true));
 
         n.f11.accept(this, argu);
         n.f12.accept(this, argu);
@@ -464,31 +493,38 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
             return "0";
         } else if (n.f0.which == 3) {
             // Checking if the identifier is a local variable or a field of the class
-            if (isLocal(expr, argu.methName, argu.className)) {
+            if (symbolTable.classes.get(argu.className).classMethods.get(argu.methName).checkVar(expr)) {
                 // Get the type of the local variable, get a register and emit a load instruction
                 String varType = emitType(
                         symbolTable.classes.get(argu.className).classMethods.get(argu.methName).varType(expr));
                 String register = getReg();
 
-                emit(register + " = load " + varType + ", " + varType + "* %" + expr + "\n");
+                emit("\t" + register + " = load " + varType + ", " + varType + "* %" + expr + "\n");
 
                 return register;
             } else {
-                // TODO: Deal with the field
                 // Field
 
                 // Basically three instructions: getelementptr, bitcast, load and then return the register
-                String fieldType = fieldType(argu.className, expr);
                 String fieldOffset = getOffset(argu.className, expr);
-            }
+                String fieldType = fieldType(argu.className, expr);
 
+                String regGEP = getReg();
+                emit("\t" + regGEP + " = getelementptr i8, i8* %this, i32 " + fieldOffset + "\n");
+
+                String regBC = getReg();
+                emit("\t" + regBC + " = bitcast i8* " + regGEP + " to " + fieldType + "*" + "\n");
+
+                String regL = getReg();
+                emit("\t" + regL + " = load " + fieldType + ", " + fieldType + "* " + regBC + "\n");
+
+                return regL;
+            }
         } else if (n.f0.which == 4) {
             return "%this";
         } else {
             return expr;
         }
-
-        return null;
     }
 
     /**
