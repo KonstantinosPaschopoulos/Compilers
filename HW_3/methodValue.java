@@ -26,4 +26,12 @@ public class methodValue {
         isDerived = true;
     }
 
+    public String varType(String name) {
+        if (methodLocals.containsKey(name)) {
+            return methodLocals.get(name);
+        } else {
+            return methodParams.get(name);
+        }
+    }
+
 }

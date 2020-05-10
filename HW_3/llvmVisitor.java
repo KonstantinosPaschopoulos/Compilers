@@ -13,9 +13,13 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     mySymbolTable symbolTable;
     String fileName;
     String dirName = "LLVM_output";
+    int regCount;
+    int labelCount;
 
     public llvmVisitor(mySymbolTable symbolTable, String fileName) throws IOException {
         this.symbolTable = symbolTable;
+        this.regCount = 0;
+        this.labelCount = 0;
         String fileName_only = new File(fileName).getName().replaceFirst("[.][^.]+$", "");
         this.fileName = dirName + "/" + fileName_only + ".ll";
 
@@ -61,6 +65,42 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
             // For classes objects
             return "i8*";
         }
+    }
+
+    private boolean isLocal(String idName, String methName, String className) {
+        if (this.symbolTable.classes.get(className).classMethods.get(methName).checkVar(idName)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private String getReg() {
+        String retReg = "%_" + Integer.toString(regCount);
+        regCount++;
+
+        return retReg;
+    }
+
+    private String fieldType(String className, String fieldName) {
+        if (symbolTable.classes.get(className).checkField(fieldName)) {
+            return emitType(symbolTable.classes.get(className).classFields.get(fieldName));
+        } else {
+            while (symbolTable.classes.get(className).extendsBool == true) {
+                className = symbolTable.classes.get(className).parentClass;
+
+                if (symbolTable.classes.get(className).checkField(fieldName) == true) {
+                    return emitType(symbolTable.classes.get(className).classFields.get(fieldName));
+                }
+            }
+        }
+
+        // Won't reach this
+        return null;
+    }
+
+    private String getOffset(String className, String varName) {
+
     }
 
     private void boilerplate() {
@@ -372,9 +412,14 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         // Allocation of local variables
         n.f7.accept(this, argu);
 
+        // TODO: Statement expressions
         n.f8.accept(this, argu);
+
         n.f9.accept(this, argu);
+
+        // TODO: Return expression
         n.f10.accept(this, argu);
+
         n.f11.accept(this, argu);
         n.f12.accept(this, argu);
 
@@ -399,21 +444,69 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     }
 
     /**
-    * f0 -> ArrayType()
-    *       | BooleanType()
-    *       | IntegerType()
+    * f0 -> IntegerLiteral()
+    *       | TrueLiteral()
+    *       | FalseLiteral()
     *       | Identifier()
+    *       | ThisExpression()
+    *       | ArrayAllocationExpression()
+    *       | AllocationExpression()
+    *       | BracketExpression()
     */
-    public String visit(Type n, argsObj argu) throws Exception {
-        return n.f0.accept(this, argu);
+    public String visit(PrimaryExpression n, argsObj argu) throws Exception {
+        String expr = n.f0.accept(this, argu);
+
+        if (n.f0.which == 0) {
+            return expr;
+        } else if (n.f0.which == 1) {
+            return "1";
+        } else if (n.f0.which == 2) {
+            return "0";
+        } else if (n.f0.which == 3) {
+            // Checking if the identifier is a local variable or a field of the class
+            if (isLocal(expr, argu.methName, argu.className)) {
+                // Get the type of the local variable, get a register and emit a load instruction
+                String varType = emitType(
+                        symbolTable.classes.get(argu.className).classMethods.get(argu.methName).varType(expr));
+                String register = getReg();
+
+                emit(register + " = load " + varType + ", " + varType + "* %" + expr + "\n");
+
+                return register;
+            } else {
+                // TODO: Deal with the field
+                // Field
+
+                // Basically three instructions: getelementptr, bitcast, load and then return the register
+                String fieldType = fieldType(argu.className, expr);
+                String fieldOffset = getOffset(argu.className, expr);
+            }
+
+        } else if (n.f0.which == 4) {
+            return "%this";
+        } else {
+            return expr;
+        }
+
+        return null;
     }
 
     /**
-    * f0 -> BooleanArrayType()
-    *       | IntegerArrayType()
+    * f0 -> <INTEGER_LITERAL>
     */
-    public String visit(ArrayType n, argsObj argu) throws Exception {
-        return n.f0.accept(this, argu);
+    public String visit(IntegerLiteral n, argsObj argu) throws Exception {
+        return n.f0.toString();
+    }
+
+    /**
+    * f0 -> "("
+    * f1 -> Expression()
+    * f2 -> ")"
+    */
+    public String visit(BracketExpression n, argsObj argu) throws Exception {
+        String ret = n.f1.accept(this, argu);
+
+        return ret;
     }
 
     /**
