@@ -528,6 +528,22 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     }
 
     /**
+    * f0 -> "!"
+    * f1 -> Clause()
+    */
+    public String visit(NotExpression n, argsObj argu) throws Exception {
+        n.f0.accept(this, argu);
+
+        String expr = n.f1.accept(this, argu);
+
+        // Since there is not a logical not instruction, I will use a xor as seen on the examples
+        String notReg = getReg();
+        emit("\t" + notReg + " = xor i1 1, " + expr + "\n");
+
+        return notReg;
+    }
+
+    /**
     * f0 -> <INTEGER_LITERAL>
     */
     public String visit(IntegerLiteral n, argsObj argu) throws Exception {
