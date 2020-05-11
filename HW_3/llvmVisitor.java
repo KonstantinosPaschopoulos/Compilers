@@ -76,6 +76,13 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         return retReg;
     }
 
+    private String getLabel() {
+        String retLabel = "label_expr" + Integer.toString(labelCount);
+        labelCount++;
+
+        return retLabel;
+    }
+
     private String fieldType(String className, String fieldName) {
         if (symbolTable.classes.get(className).checkField(fieldName)) {
             return emitType(symbolTable.classes.get(className).classFields.get(fieldName));
@@ -470,6 +477,59 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         emit(", " + emitType(paramType) + " %." + paramId);
 
         return _ret;
+    }
+
+    /**
+    * f0 -> Clause()
+    * f1 -> "&&"
+    * f2 -> Clause()
+    */
+    public String visit(AndExpression n, argsObj argu) throws Exception {
+        String labelZero = getLabel();
+        String labelOne = getLabel();
+        String labelTwo = getLabel();
+        String labelThree = getLabel();
+
+        // The br instruction
+        String firstClause = n.f0.accept(this, argu);
+        emit("\t" + "br i1 " + firstClause + ", label %" + labelOne + ", label %" + labelZero + "\n");
+
+        // Short circuit if false
+        emit("\t" + labelZero + ":" + "\n");
+        emit("\t" + "br label %" + labelTwo + "\n");
+
+        // If true
+        emit("\t" + labelOne + ":" + "\n");
+        String secondClause = n.f2.accept(this, argu);
+        emit("\t" + "br label %" + labelTwo + "\n");
+
+        // The 'useless' block
+        emit("\t" + labelTwo + ":" + "\n");
+        emit("\t" + "br label %" + labelThree + "\n");
+
+        // Phi instruction
+        String phiReg = getReg();
+        emit("\t" + labelThree + ":" + "\n");
+        emit("\t" + phiReg + " = phi i1 [ 0, %" + labelZero + " ], [ " + secondClause + ", %" + labelTwo + " ]\n");
+
+        n.f1.accept(this, argu);
+        return phiReg;
+    }
+
+    /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "<"
+    * f2 -> PrimaryExpression()
+    */
+    public String visit(CompareExpression n, argsObj argu) throws Exception {
+        String leftExpr = n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+        String rightExpr = n.f2.accept(this, argu);
+
+        String icmpReg = getReg();
+        emit("\t" + icmpReg + " = slt i32 " + leftExpr + ", " + rightExpr + "\n");
+
+        return icmpReg;
     }
 
     /**
