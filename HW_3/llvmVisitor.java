@@ -473,6 +473,54 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     }
 
     /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "+"
+    * f2 -> PrimaryExpression()
+    */
+    public String visit(PlusExpression n, argsObj argu) throws Exception {
+        String leftExpr = n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+        String rightExpr = n.f2.accept(this, argu);
+
+        String plusReg = getReg();
+        emit("\t" + plusReg + " = add i32 " + leftExpr + ", " + rightExpr + "\n");
+
+        return getReg();
+    }
+
+    /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "-"
+    * f2 -> PrimaryExpression()
+    */
+    public String visit(MinusExpression n, argsObj argu) throws Exception {
+        String leftExpr = n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+        String rightExpr = n.f2.accept(this, argu);
+
+        String minusReg = getReg();
+        emit("\t" + minusReg + " = sub i32 " + leftExpr + ", " + rightExpr + "\n");
+
+        return minusReg;
+    }
+
+    /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "*"
+    * f2 -> PrimaryExpression()
+    */
+    public String visit(TimesExpression n, argsObj argu) throws Exception {
+        String leftExpr = n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+        String rightExpr = n.f2.accept(this, argu);
+
+        String multReg = getReg();
+        emit("\t" + multReg + " = mul i32 " + leftExpr + ", " + rightExpr + "\n");
+
+        return multReg;
+    }
+
+    /**
     * f0 -> IntegerLiteral()
     *       | TrueLiteral()
     *       | FalseLiteral()
