@@ -2,9 +2,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import syntaxtree.*;
@@ -17,6 +15,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     String dirName = "LLVM_output";
     int regCount;
     int labelCount;
+    LinkedHashMap<String, LinkedHashMap<String, String>> fieldTable;
 
     public llvmVisitor(mySymbolTable symbolTable, String fileName) throws IOException {
         this.symbolTable = symbolTable;
@@ -101,38 +100,24 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     }
 
     private String getOffset(String className, String varName) {
-        int offset = 0;
+        // Starting the offset with 8 because of the vtable pointer in the front
+        int offset = 8;
 
-        // First I add all the parent classes and the original class to a list with the supermost class on top
-        List<String> classList = new ArrayList<String>();
-        classList.add(0, className);
-        while (symbolTable.classes.get(className).extendsBool) {
-            className = symbolTable.classes.get(className).parentClass;
+        for (Map.Entry<String, String> entry : fieldTable.get(className).entrySet()) {
+            String fieldName = entry.getKey();
+            String fieldType = entry.getValue();
 
-            classList.add(0, className);
-        }
+            // Return the offset that has been calculated up until the field
+            if (Objects.equals(fieldName, varName)) {
+                return Integer.toString(offset);
+            }
 
-        // Then I iterate through all the classes I added to the list
-        for (int i = 0; i < classList.size(); i++) {
-            // For every class that is in the list I iterate through their fields and calculate the offset
-            for (Map.Entry<String, String> classFields : symbolTable.classes.get(classList.get(i)).classFields
-                    .entrySet()) {
-                String fieldName = classFields.getKey();
-                String fieldType = classFields.getValue();
-
-                // When I reach the 'varName' field I return the calculated value
-                if (Objects.equals(fieldName, varName)) {
-                    offset += 8; // Adding 8 because of the vtable that is in the front
-                    return Integer.toString(offset);
-                }
-
-                if (Objects.equals(fieldType, "int")) {
-                    offset += 4;
-                } else if (Objects.equals(fieldType, "boolean")) {
-                    offset += 1;
-                } else {
-                    offset += 8;
-                }
+            if (Objects.equals(fieldType, "int")) {
+                offset += 4;
+            } else if (Objects.equals(fieldType, "boolean")) {
+                offset += 1;
+            } else {
+                offset += 8;
             }
         }
 
@@ -244,6 +229,49 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         }
     }
 
+    // What this function does is add all the fields of a given class to the map,
+    // but also adding the fields of all the superclasses before it
+    private void createFieldInfo() {
+        // Has className, <fieldName, type>
+        fieldTable = new LinkedHashMap<String, LinkedHashMap<String, String>>();
+        boolean flag = true;
+
+        for (Map.Entry<String, classValue> entry : symbolTable.classes.entrySet()) {
+            String className = entry.getKey();
+            classValue classValue = entry.getValue();
+
+            // Skip the main class
+            if (flag) {
+                flag = false;
+                continue;
+            }
+
+            // Add the name of the class to the map
+            LinkedHashMap<String, String> classFields = new LinkedHashMap<String, String>();
+            fieldTable.put(className, classFields);
+
+            // Copy all the elements of the superclass
+            if (classValue.extendsBool) {
+                fieldTable.get(className).putAll(fieldTable.get(classValue.parentClass));
+            }
+
+            // Iterate through the fields of and make changes or add new ones
+            for (Map.Entry<String, String> fieldsEntry : symbolTable.classes.get(className).classFields.entrySet()) {
+                String fieldName = fieldsEntry.getKey();
+                String fieldType = fieldsEntry.getValue();
+
+                if (fieldTable.get(className).containsKey(fieldName)) {
+                    // Replace the type
+                    fieldTable.get(className).replace(fieldName, fieldType);
+                } else {
+                    // Add the new field name and type
+                    fieldTable.get(className).put(fieldName, fieldType);
+                }
+            }
+
+        }
+    }
+
     /**
     * f0 -> MainClass()
     * f1 -> ( TypeDeclaration() )*
@@ -257,6 +285,9 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
 
         // Add boilerplate
         boilerplate();
+
+        // Create a table that stores the field offsets
+        createFieldInfo();
 
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
@@ -527,7 +558,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         String rightExpr = n.f2.accept(this, argu);
 
         String icmpReg = getReg();
-        emit("\t" + icmpReg + " = slt i32 " + leftExpr + ", " + rightExpr + "\n");
+        emit("\t" + icmpReg + " = icmp slt i32 " + leftExpr + ", " + rightExpr + "\n");
 
         return icmpReg;
     }
@@ -720,6 +751,26 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
 
         // TODO: or return reBC as before, also size of first position?
         return regCalloc;
+    }
+
+    /**
+    * f0 -> "new"
+    * f1 -> Identifier()
+    * f2 -> "("
+    * f3 -> ")"
+    */
+    public String visit(AllocationExpression n, argsObj argu) throws Exception {
+        String _ret = null;
+        n.f0.accept(this, argu);
+
+        String className = n.f1.accept(this, argu);
+
+        // Allocate memory on heap for the object
+        // int classSize = getClassSize(className);
+
+        n.f2.accept(this, argu);
+        n.f3.accept(this, argu);
+        return _ret;
     }
 
     /**
