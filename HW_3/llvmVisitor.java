@@ -636,6 +636,93 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     }
 
     /**
+    * f0 -> "new"
+    * f1 -> "int"
+    * f2 -> "["
+    * f3 -> Expression()
+    * f4 -> "]"
+    */
+    public String visit(IntegerArrayAllocationExpression n, argsObj argu) throws Exception {
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+        n.f2.accept(this, argu);
+
+        String sizeReg = n.f3.accept(this, argu);
+
+        // Calculate size bytes to be allocated, plus one for storing the array size
+        String regAdd = getReg();
+        emit("\t" + regAdd + " = add i32 1, " + sizeReg + "\n");
+
+        // Check that the size is >= 1
+        String regCheck = getReg();
+        emit("\t" + regCheck + " = icmp sge i32 " + regAdd + ", 1" + "\n");
+        String labelOk = getLabel();
+        String labelErr = getLabel();
+        emit("\t" + "br i1 " + regCheck + ", label %" + labelOk + ", label %" + labelErr + "\n\n");
+
+        // Throw negative size error
+        emit("\t" + labelErr + ":" + "\n");
+        emit("\t" + "call void @throw_nsz()" + "\n");
+        emit("\t" + "br label " + labelOk + "\n\n");
+
+        // Proceed with the allocation
+        emit("\t" + labelOk + ":" + "\n");
+        String regCalloc = getReg();
+        String regBC = getReg();
+        emit("\t" + regCalloc + " = call i8* @calloc(i32 " + regAdd + ", i32 4)" + "\n");
+        emit("\t" + regBC + " = bitcast i8* " + regCalloc + " to i32*" + "\n");
+        emit("\t" + "store i32 " + sizeReg + ", i32* " + regBC + "\n");
+
+        n.f4.accept(this, argu);
+
+        return regBC;
+    }
+
+    /**
+    * f0 -> "new"
+    * f1 -> "boolean"
+    * f2 -> "["
+    * f3 -> Expression()
+    * f4 -> "]"
+    */
+    public String visit(BooleanArrayAllocationExpression n, argsObj argu) throws Exception {
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+        n.f2.accept(this, argu);
+
+        String sizeReg = n.f3.accept(this, argu);
+
+        // Calculate size bytes to be allocated, plus one for storing the array size
+        String regAdd = getReg();
+        emit("\t" + regAdd + " = add i32 1, " + sizeReg + "\n");
+
+        // Check that the size is >= 1
+        String regCheck = getReg();
+        emit("\t" + regCheck + " = icmp sge i32 " + regAdd + ", 1" + "\n");
+        String labelOk = getLabel();
+        String labelErr = getLabel();
+        emit("\t" + "br i1 " + regCheck + ", label %" + labelOk + ", label %" + labelErr + "\n\n");
+
+        // Throw negative size error
+        emit("\t" + labelErr + ":" + "\n");
+        emit("\t" + "call void @throw_nsz()" + "\n");
+        emit("\t" + "br label " + labelOk + "\n\n");
+
+        // Proceed with the allocation
+        emit("\t" + labelOk + ":" + "\n");
+        String regCalloc = getReg();
+        String regBC = getReg();
+        emit("\t" + regCalloc + " = call i8* @calloc(i32 " + regAdd + ", i32 1)" + "\n");
+        emit("\t" + regBC + " = bitcast i8* " + regCalloc + " to i32*" + "\n");
+        emit("\t" + "store i32 " + sizeReg + ", i32* " + regBC + "\n");
+
+        n.f4.accept(this, argu);
+
+        // TODO: or return reBC as before, also size of first position?
+        return regCalloc;
+    }
+
+    /**
     * f0 -> "!"
     * f1 -> Clause()
     */
