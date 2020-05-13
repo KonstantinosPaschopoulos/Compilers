@@ -786,7 +786,6 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     * f3 -> ")"
     */
     public String visit(AllocationExpression n, argsObj argu) throws Exception {
-        String _ret = null;
         n.f0.accept(this, argu);
 
         String className = n.f1.accept(this, argu);
@@ -813,7 +812,8 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
 
         n.f2.accept(this, argu);
         n.f3.accept(this, argu);
-        return _ret;
+
+        return regCalloc;
     }
 
     /**
