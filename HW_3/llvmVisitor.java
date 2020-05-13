@@ -638,6 +638,84 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     }
 
     /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "["
+    * f2 -> PrimaryExpression()
+    * f3 -> "]"
+    */
+    public String visit(ArrayLookup n, argsObj argu) throws Exception {
+        String arrReg = n.f0.accept(this, argu);
+
+        // TODO: Make it work for boolean arrays
+
+        // Loading the size of the array
+        String regArraySize = getReg();
+        emit("\t" + regArraySize + " = load i32, i32* " + arrReg + "\n");
+
+        n.f1.accept(this, argu);
+
+        String sizeReg = n.f2.accept(this, argu);
+
+        // Check that the index is legal
+        String regSGE = getReg();
+        emit("\t" + regSGE + " = icmp sge i32 " + sizeReg + ", 0" + "\n");
+        String regSLT = getReg();
+        emit("\t" + regSLT + " = icmp slt i32 " + sizeReg + ", " + regArraySize + "\n");
+
+        // Checking that both conditions hold
+        String regAND = getReg();
+        emit("\t" + regAND + " = and i1 " + regSGE + ", " + regSLT + "\n");
+        String labelOK = getLabel();
+        String labelERR = getLabel();
+        emit("\t" + "br i1 " + regAND + ", label %" + labelOK + ", label %" + labelERR + "\n");
+
+        // Throwing OOB exception
+        emit("\t" + labelERR + ":" + "\n");
+        emit("\t" + "call void @throw_oob()" + "\n");
+        emit("\t" + "br label %" + labelOK + "\n\n");
+
+        // All ok
+        emit("\t" + labelOK + ":" + "\n");
+
+        // Adding 1 because the first first position holds the size of the array
+        String regADD = getReg();
+        emit("\t" + regADD + " = add i32 1, " + sizeReg + "\n");
+
+        // Now get a pointer to the correct position
+        String regGEP = getReg();
+        emit("\t" + regGEP + " = getelementptr i32, i32* " + arrReg + ", i32 " + regADD + "\n");
+
+        // Load and return the register
+        String regL = getReg();
+        emit("\t" + regL + " = load i32, i32* " + regGEP + "\n");
+
+        n.f3.accept(this, argu);
+
+        return regL;
+    }
+
+    /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "."
+    * f2 -> "length"
+    */
+    public String visit(ArrayLength n, argsObj argu) throws Exception {
+        String arrReg = n.f0.accept(this, argu);
+
+        n.f1.accept(this, argu);
+        n.f2.accept(this, argu);
+
+        // TODO: make it work for booleans
+
+        // Since the length of the array has been stored in the first position
+        // It's just a load instruction
+        String regL = getReg();
+        emit("\t" + regL + " = load i32, i32* " + arrReg + "\n");
+
+        return regL;
+    }
+
+    /**
     * f0 -> IntegerLiteral()
     *       | TrueLiteral()
     *       | FalseLiteral()
@@ -749,13 +827,13 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
 
         String sizeReg = n.f3.accept(this, argu);
 
-        // Calculate size bytes to be allocated, plus one for storing the array size
+        // Calculate size bytes to be allocated, plus 4 bytes for storing the array size
         String regAdd = getReg();
-        emit("\t" + regAdd + " = add i32 1, " + sizeReg + "\n");
+        emit("\t" + regAdd + " = add i32 4, " + sizeReg + "\n");
 
-        // Check that the size is >= 1
+        // Check that the size is >= 4
         String regCheck = getReg();
-        emit("\t" + regCheck + " = icmp sge i32 " + regAdd + ", 1" + "\n");
+        emit("\t" + regCheck + " = icmp sge i32 " + regAdd + ", 4" + "\n");
         String labelOk = getLabel();
         String labelErr = getLabel();
         emit("\t" + "br i1 " + regCheck + ", label %" + labelOk + ", label %" + labelErr + "\n\n");
@@ -775,7 +853,6 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
 
         n.f4.accept(this, argu);
 
-        // TODO: or return reBC as before, also size of first position?
         return regCalloc;
     }
 
