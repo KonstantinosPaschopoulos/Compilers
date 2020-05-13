@@ -17,9 +17,11 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     int labelCount;
     LinkedHashMap<String, LinkedHashMap<String, String>> fieldTable;
     LinkedHashMap<String, LinkedHashMap<String, String>> vtable;
+    LinkedHashMap<String, String> regTable;
 
     public llvmVisitor(mySymbolTable symbolTable, String fileName) throws IOException {
         this.symbolTable = symbolTable;
+        this.regTable = new LinkedHashMap<String, String>();
         this.regCount = 0;
         this.labelCount = 0;
         String fileName_only = new File(fileName).getName().replaceFirst("[.][^.]+$", "");
@@ -144,6 +146,22 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         return offset;
     }
 
+    private String getMethOffset(String className, String methName) {
+        int offset = 0;
+
+        for (Map.Entry<String, String> entry : vtable.get(className).entrySet()) {
+            String meth = entry.getKey();
+
+            if (Objects.equals(methName, meth)) {
+                return Integer.toString(offset);
+            }
+
+            offset += 8;
+        }
+
+        return null;
+    }
+
     private String getNumberMethods(String className) {
         int sum = vtable.get(className).size();
 
@@ -198,7 +216,8 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
 
             emit("\n@." + className + "_vtable = global ");
 
-            // If the current class is derived copy all the function from the entry of the parent class before adding any more functions
+            // If the current class is derived copy all the function from the entry of the parent class
+            // before adding any more functions
             if (classValue.extendsBool) {
                 vtable.get(className).putAll(vtable.get(classValue.parentClass));
             }
@@ -394,8 +413,8 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
 
         n.f2.accept(this, argu);
 
-        // We don't need to visit the f3 node only the method declerations
         // n.f3.accept(this, argu);
+        // We don't need to visit the f3 node only the method declerations
         n.f4.accept(this, new argsObj(classId, "", true, false));
 
         n.f5.accept(this, argu);
@@ -569,7 +588,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         emit("\t" + labelThree + ":" + "\n");
         emit("\t" + phiReg + " = phi i1 [ 0, %" + labelZero + " ], [ " + secondClause + ", %" + labelTwo + " ]\n");
 
-        n.f1.accept(this, argu);
+        regTable.put(phiReg, "boolean");
         return phiReg;
     }
 
@@ -586,6 +605,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         String icmpReg = getReg();
         emit("\t" + icmpReg + " = icmp slt i32 " + leftExpr + ", " + rightExpr + "\n");
 
+        regTable.put(icmpReg, "boolean");
         return icmpReg;
     }
 
@@ -602,7 +622,8 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         String plusReg = getReg();
         emit("\t" + plusReg + " = add i32 " + leftExpr + ", " + rightExpr + "\n");
 
-        return getReg();
+        regTable.put(plusReg, "int");
+        return plusReg;
     }
 
     /**
@@ -618,6 +639,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         String minusReg = getReg();
         emit("\t" + minusReg + " = sub i32 " + leftExpr + ", " + rightExpr + "\n");
 
+        regTable.put(minusReg, "int");
         return minusReg;
     }
 
@@ -634,6 +656,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         String multReg = getReg();
         emit("\t" + multReg + " = mul i32 " + leftExpr + ", " + rightExpr + "\n");
 
+        regTable.put(multReg, "int");
         return multReg;
     }
 
@@ -691,6 +714,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
 
         n.f3.accept(this, argu);
 
+        regTable.put(regL, "int[]"); // TODO: boolean fix
         return regL;
     }
 
@@ -712,7 +736,50 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         String regL = getReg();
         emit("\t" + regL + " = load i32, i32* " + arrReg + "\n");
 
+        regTable.put(regL, "int");
         return regL;
+    }
+
+    /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "."
+    * f2 -> Identifier()
+    * f3 -> "("
+    * f4 -> ( ExpressionList() )?
+    * f5 -> ")"
+    */
+    public String visit(MessageSend n, argsObj argu) throws Exception {
+        String objReg = n.f0.accept(this, argu);
+
+        // Do a bitcast to access the vtable
+        String regBC = getReg();
+        emit("\t" + regBC + " = bitcast i8* " + objReg + " to i8***" + "\n");
+
+        // Load the vtable
+        String regL = getReg();
+        emit("\t" + regL + " = load i8**, i8*** " + regBC + "\n");
+
+        // Find the type of the f0 primary expression
+        String regType;
+        if (Objects.equals(objReg, "%this")) {
+            regType = argu.className;
+        } else {
+            regType = regTable.get(objReg);
+        }
+
+        n.f1.accept(this, argu);
+
+        // Get a pointer to the correct offset
+        String methName = n.f2.accept(this, argu);
+        String methOffset = getMethOffset(regType, methName);
+
+        System.out.println(regType + " " + methName + " " + methOffset);
+
+        n.f3.accept(this, argu);
+        n.f4.accept(this, argu);
+        n.f5.accept(this, argu);
+
+        return null;
     }
 
     /**
@@ -744,6 +811,8 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
 
                 emit("\t" + register + " = load " + varType + ", " + varType + "* %" + expr + "\n");
 
+                regTable.put(register,
+                        symbolTable.classes.get(argu.className).classMethods.get(argu.methName).varType(expr));
                 return register;
             } else {
                 // Field
@@ -761,6 +830,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
                 String regL = getReg();
                 emit("\t" + regL + " = load " + fieldType + ", " + fieldType + "* " + regBC + "\n");
 
+                regTable.put(regL, symbolTable.typeF(argu.className, expr));
                 return regL;
             }
         } else if (n.f0.which == 4) {
@@ -810,6 +880,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
 
         n.f4.accept(this, argu);
 
+        regTable.put(regBC, "int[]");
         return regBC;
     }
 
@@ -853,6 +924,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
 
         n.f4.accept(this, argu);
 
+        regTable.put(regCalloc, "boolean[]");
         return regCalloc;
     }
 
@@ -890,6 +962,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         n.f2.accept(this, argu);
         n.f3.accept(this, argu);
 
+        regTable.put(regCalloc, className);
         return regCalloc;
     }
 
@@ -906,6 +979,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         String notReg = getReg();
         emit("\t" + notReg + " = xor i1 1, " + expr + "\n");
 
+        regTable.put(notReg, "boolean");
         return notReg;
     }
 

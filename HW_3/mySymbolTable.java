@@ -247,4 +247,21 @@ public class mySymbolTable {
         }
     }
 
+    public String typeF(String className, String fieldName) {
+        if (classes.get(className).checkField(fieldName)) {
+            return classes.get(className).classFields.get(fieldName);
+        } else {
+            while (classes.get(className).extendsBool == true) {
+                className = classes.get(className).parentClass;
+
+                if (classes.get(className).checkField(fieldName) == true) {
+                    return classes.get(className).classFields.get(fieldName);
+                }
+            }
+        }
+
+        // Won't reach this
+        return null;
+    }
+
 }
