@@ -16,6 +16,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     int regCount;
     int labelCount;
     LinkedHashMap<String, LinkedHashMap<String, String>> fieldTable;
+    LinkedHashMap<String, LinkedHashMap<String, String>> vtable;
 
     public llvmVisitor(mySymbolTable symbolTable, String fileName) throws IOException {
         this.symbolTable = symbolTable;
@@ -124,6 +125,31 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         return null;
     }
 
+    private int getClassSize(String className) {
+        int offset = 0;
+
+        // Iterate through all the fields in the class calculating the offset
+        for (Map.Entry<String, String> entry : fieldTable.get(className).entrySet()) {
+            String fieldType = entry.getValue();
+
+            if (Objects.equals(fieldType, "int")) {
+                offset += 4;
+            } else if (Objects.equals(fieldType, "boolean")) {
+                offset += 1;
+            } else {
+                offset += 8;
+            }
+        }
+
+        return offset;
+    }
+
+    private String getNumberMethods(String className) {
+        int sum = vtable.get(className).size();
+
+        return Integer.toString(sum);
+    }
+
     private void boilerplate() {
         emit("\ndeclare i8* @calloc(i32, i32)\n");
         emit("declare i32 @printf(i8*, ...)\n");
@@ -153,11 +179,14 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     private void vtable_emit() {
         boolean flag = true;
         // The map contains for each className the function names and LLVM code
-        LinkedHashMap<String, LinkedHashMap<String, String>> vtable = new LinkedHashMap<String, LinkedHashMap<String, String>>();
+        vtable = new LinkedHashMap<String, LinkedHashMap<String, String>>();
 
         for (Map.Entry<String, classValue> entry : symbolTable.classes.entrySet()) {
             String className = entry.getKey();
             classValue classValue = entry.getValue();
+
+            LinkedHashMap<String, String> functionValues = new LinkedHashMap<String, String>();
+            vtable.put(className, functionValues);
 
             // The main class doesn't need much work
             if (flag) {
@@ -168,9 +197,6 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
             }
 
             emit("\n@." + className + "_vtable = global ");
-
-            LinkedHashMap<String, String> functionValues = new LinkedHashMap<String, String>();
-            vtable.put(className, functionValues);
 
             // If the current class is derived copy all the function from the entry of the parent class before adding any more functions
             if (classValue.extendsBool) {
@@ -766,7 +792,24 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         String className = n.f1.accept(this, argu);
 
         // Allocate memory on heap for the object
-        // int classSize = getClassSize(className);
+        int classSize = getClassSize(className);
+        classSize += 8; // Adding 8 bytes to account for the vtable pointer
+
+        String regCalloc = getReg();
+        emit("\t" + regCalloc + " = call i8* @calloc(i32 1, i32 " + Integer.toString(classSize) + ")" + "\n");
+
+        // Setting the vtable pointer
+        String regBC = getReg();
+        emit("\t" + regBC + " = bitcast i8* " + regCalloc + " to i8***" + "\n");
+
+        // Get the address of the vtable
+        String regGEP = getReg();
+        String numMethods = getNumberMethods(className);
+        emit("\t" + regGEP + " = getelementptr [" + numMethods + " x i8*], [" + numMethods + " x i8*]* @." + className
+                + "_vtable, i32 0, i32 0" + "\n");
+
+        // Set the vtable to the correct address
+        emit("\t" + "store i8** " + regGEP + ", i8*** " + regBC + "\n");
 
         n.f2.accept(this, argu);
         n.f3.accept(this, argu);
