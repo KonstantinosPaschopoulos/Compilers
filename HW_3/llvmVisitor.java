@@ -561,6 +561,44 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     }
 
     /**
+    * f0 -> "if"
+    * f1 -> "("
+    * f2 -> Expression()
+    * f3 -> ")"
+    * f4 -> Statement()
+    * f5 -> "else"
+    * f6 -> Statement()
+    */
+    public String visit(IfStatement n, argsObj argu) throws Exception {
+        String _ret = null;
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+
+        // Br statement
+        String icmpReg = n.f2.accept(this, argu);
+        n.f3.accept(this, argu);
+        String thenLabel = getLabel();
+        String elseLabel = getLabel();
+        String endLabel = getLabel();
+        emit("\t" + "br i1 " + icmpReg + ", label %" + thenLabel + ", %" + elseLabel + "\n");
+
+        // Then label
+        emit("\t" + thenLabel + ":" + "\n");
+        n.f4.accept(this, argu);
+        emit("\t" + "br label %" + endLabel + "\n");
+
+        // Else label
+        emit("\t" + elseLabel + ":" + "\n");
+        n.f5.accept(this, argu);
+        n.f6.accept(this, argu);
+        emit("\t" + "br label %" + endLabel + "\n");
+
+        emit("\t" + endLabel + ":" + "\n");
+
+        return _ret;
+    }
+
+    /**
     * f0 -> "System.out.println"
     * f1 -> "("
     * f2 -> Expression()
