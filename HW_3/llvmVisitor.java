@@ -599,6 +599,42 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     }
 
     /**
+    * f0 -> "while"
+    * f1 -> "("
+    * f2 -> Expression()
+    * f3 -> ")"
+    * f4 -> Statement()
+    */
+    public String visit(WhileStatement n, argsObj argu) throws Exception {
+        String _ret = null;
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+
+        // Br loop0
+        String label0 = getLabel();
+        emit("\t" + "br label %" + label0 + "\n");
+
+        emit("\t" + label0 + ":" + "\n");
+
+        // Br, icmp
+        String label1 = getLabel();
+        String label2 = getLabel();
+        String icmpExpr = n.f2.accept(this, argu);
+        emit("\t" + "br i1 " + icmpExpr + ", label %" + label1 + ", label %" + label2 + "\n");
+
+        emit("\t" + label1 + ":" + "\n");
+
+        n.f3.accept(this, argu);
+        n.f4.accept(this, argu);
+
+        emit("\t" + "br label %" + label0 + "\n");
+
+        emit("\t" + label2 + ":" + "\n");
+
+        return _ret;
+    }
+
+    /**
     * f0 -> "System.out.println"
     * f1 -> "("
     * f2 -> Expression()
