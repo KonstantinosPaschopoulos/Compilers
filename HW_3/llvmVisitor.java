@@ -561,6 +561,26 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     }
 
     /**
+    * f0 -> "System.out.println"
+    * f1 -> "("
+    * f2 -> Expression()
+    * f3 -> ")"
+    * f4 -> ";"
+    */
+    public String visit(PrintStatement n, argsObj argu) throws Exception {
+        String _ret = null;
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+
+        String exprReg = n.f2.accept(this, argu);
+        emit("\t" + "call void (i32) @print_int(i32 " + exprReg + ")" + "\n");
+
+        n.f3.accept(this, argu);
+        n.f4.accept(this, argu);
+        return _ret;
+    }
+
+    /**
     * f0 -> Clause()
     * f1 -> "&&"
     * f2 -> Clause()
