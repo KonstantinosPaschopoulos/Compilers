@@ -534,8 +534,8 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
 
         n.f9.accept(this, argu);
 
-        // TODO: Return expression
-        n.f10.accept(this, new argsObj(argu.className, methId, true, true));
+        String retReg = n.f10.accept(this, new argsObj(argu.className, methId, true, true));
+        emit("\t" + "ret " + emitType(retType) + " " + retReg + "\n");
 
         n.f11.accept(this, argu);
         n.f12.accept(this, argu);
