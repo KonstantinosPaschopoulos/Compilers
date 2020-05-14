@@ -2,6 +2,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -18,12 +19,16 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     LinkedHashMap<String, LinkedHashMap<String, String>> fieldTable;
     LinkedHashMap<String, LinkedHashMap<String, String>> vtable;
     LinkedHashMap<String, String> regTable;
+    int arguIndex;
+    ArrayList<String> arguList;
 
     public llvmVisitor(mySymbolTable symbolTable, String fileName) throws IOException {
         this.symbolTable = symbolTable;
         this.regTable = new LinkedHashMap<String, String>();
+        arguList = new ArrayList<String>();
         this.regCount = 0;
         this.labelCount = 0;
+        this.arguIndex = -1;
         String fileName_only = new File(fileName).getName().replaceFirst("[.][^.]+$", "");
         this.fileName = dirName + "/" + fileName_only + ".ll";
 
@@ -772,14 +777,87 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         // Get a pointer to the correct offset
         String methName = n.f2.accept(this, argu);
         String methOffset = getMethOffset(regType, methName);
+        String regGEP = getReg();
 
-        System.out.println(regType + " " + methName + " " + methOffset);
+        emit("\t" + regGEP + " = getelementptr i8*, i8** " + regL + ", i32 " + methOffset + "\n");
+
+        // Getting the function pointer
+        String regLF = getReg();
+        emit("\t" + regLF + " = load i8*, i8** " + regGEP + "\n");
+
+        // Create a function pointer that matches its signature
+        String regBCF = getReg();
+        emit("\t" + regBCF + " = bitcast i8* " + regLF + " to ");
+
+        String retType = symbolTable.classes.get(regType).classMethods.get(methName).returnType;
+        emit(emitType(retType) + " (i8*");
+
+        // Adding the rest of the parameters
+        for (Map.Entry<String, String> paramEntry : symbolTable.classes.get(regType).classMethods
+                .get(methName).methodParams.entrySet()) {
+            String paramValue = paramEntry.getValue();
+
+            emit("," + emitType(paramValue));
+        }
+
+        emit(")* \n");
 
         n.f3.accept(this, argu);
+
+        // Performing the call
+        String regCALL = getReg();
+        arguIndex++;
         n.f4.accept(this, argu);
+
+        emit("\t" + regCALL + " = call " + emitType(retType) + " " + regBCF + "(i8* " + objReg);
+
+        if ((arguIndex + 1) == arguList.size()) {
+            // Emit at once all the arguments that were collected
+            emit(arguList.get(arguIndex));
+
+            // Remove the last nested function in the argument
+            arguList.remove(arguIndex);
+        }
+        arguIndex--;
+
+        emit(")\n");
+
         n.f5.accept(this, argu);
 
-        return null;
+        regTable.put(regCALL, regType);
+        return regCALL;
+    }
+
+    /**
+    * f0 -> Expression()
+    * f1 -> ExpressionTail()
+    */
+    public String visit(ExpressionList n, argsObj argu) throws Exception {
+        String _ret = null;
+
+        String exprReg = n.f0.accept(this, argu);
+        String regType = regTable.get(exprReg);
+        arguList.add(", " + emitType(regType) + " " + exprReg);
+
+        n.f1.accept(this, argu);
+        return _ret;
+    }
+
+    /**
+    * f0 -> ","
+    * f1 -> Expression()
+    */
+    public String visit(ExpressionTerm n, argsObj argu) throws Exception {
+        String _ret = null;
+        n.f0.accept(this, argu);
+
+        // Adding the new argument to the end of the previous ones
+        String exprReg = n.f1.accept(this, argu);
+        String regType = regTable.get(exprReg);
+        String newExpr = arguList.get(arguIndex) + ", " + emitType(regType) + " " + exprReg;
+        arguList.set(arguIndex, newExpr);
+
+        return _ret;
     }
 
     /**
