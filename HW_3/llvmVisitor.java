@@ -598,6 +598,97 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     }
 
     /**
+    * f0 -> Identifier()
+    * f1 -> "["
+    * f2 -> Expression()
+    * f3 -> "]"
+    * f4 -> "="
+    * f5 -> Expression()
+    * f6 -> ";"
+    */
+    public String visit(ArrayAssignmentStatement n, argsObj argu) throws Exception {
+        String _ret = null;
+        String arrId = n.f0.accept(this, argu);
+
+        String regArr;
+        String typeArr;
+
+        if (symbolTable.classes.get(argu.className).classMethods.get(argu.methName).checkVar(arrId)) {
+            // Local variable
+            String varType = emitType(
+                    symbolTable.classes.get(argu.className).classMethods.get(argu.methName).varType(arrId));
+            String regL = getReg();
+            emit("\t" + regL + " = load " + varType + ", " + varType + "* %" + arrId + "\n");
+
+            regArr = regL;
+            typeArr = varType;
+        } else {
+            // Field
+            String fieldOffset = getOffset(argu.className, arrId);
+            String fieldType = fieldType(argu.className, arrId);
+
+            String regGEP = getReg();
+            emit("\t" + regGEP + " = getelementptr i8, i8* %this, i32 " + fieldOffset + "\n");
+
+            String regBC = getReg();
+            emit("\t" + regBC + " = bitcast i8* " + regGEP + " to " + fieldType + "*" + "\n");
+
+            String regL = getReg();
+            emit("\t" + regL + " = load " + fieldType + ", " + fieldType + "* " + regBC + "\n");
+
+            regArr = regL;
+            typeArr = fieldType;
+        }
+
+        // TODO fix for bool
+        // After loading the array, now load the size of the array
+        String regSize = getReg();
+        emit("\t" + regSize + " = load i32, " + typeArr + " " + regArr + "\n");
+
+        n.f1.accept(this, argu);
+        String indexReg = n.f2.accept(this, argu);
+        n.f3.accept(this, argu);
+
+        // Check the index
+        String regSGE = getReg();
+        String regSLT = getReg();
+        emit("\t" + regSGE + " = icmp sge i32 " + indexReg + ", 0" + "\n");
+        emit("\t" + regSLT + " = icmp slt i32 " + indexReg + ", " + regSize + "\n");
+
+        String regAnd = getReg();
+        emit("\t" + regAnd + " = and i1 " + regSGE + ", " + regSLT + "\n");
+        String labelOK = getLabel();
+        String labelERR = getLabel();
+        emit("\t" + "br i1 " + regAnd + ", label %" + labelOK + ", label %" + labelERR + "\n");
+
+        // Else
+        emit("\t" + labelERR + ":" + "\n");
+        emit("\t" + "call void @throw_oob()" + "\n");
+        emit("\t" + "br label %" + labelOK + "\n");
+
+        // All ok
+        emit("\t" + labelOK + ":" + "\n");
+
+        // Add 1 to the index
+        String regAdd = getReg();
+        emit("\t" + regAdd + " = add i32 1, " + indexReg + "\n");
+
+        n.f4.accept(this, argu);
+        String regExpr = n.f5.accept(this, argu);
+        n.f6.accept(this, argu);
+
+        // Get the pointer to the correct element
+        // TODO fix the i32 to be also for bool
+        String regGEP = getReg();
+        emit("\t" + regGEP + " = getelementptr " + "i32" + ", " + typeArr + " " + regArr + ", i32 " + regAdd + "\n");
+
+        // Store it
+        emit("\t" + "store " + "i32" + " " + regExpr + ", " + typeArr + " " + regGEP + "\n");
+
+        return _ret;
+    }
+
+    /**
     * f0 -> "if"
     * f1 -> "("
     * f2 -> Expression()
@@ -1093,7 +1184,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         // Throw negative size error
         emit("\t" + labelErr + ":" + "\n");
         emit("\t" + "call void @throw_nsz()" + "\n");
-        emit("\t" + "br label " + labelOk + "\n\n");
+        emit("\t" + "br label %" + labelOk + "\n\n");
 
         // Proceed with the allocation
         emit("\t" + labelOk + ":" + "\n");
@@ -1137,7 +1228,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         // Throw negative size error
         emit("\t" + labelErr + ":" + "\n");
         emit("\t" + "call void @throw_nsz()" + "\n");
-        emit("\t" + "br label " + labelOk + "\n\n");
+        emit("\t" + "br label %" + labelOk + "\n\n");
 
         // Proceed with the allocation
         emit("\t" + labelOk + ":" + "\n");
