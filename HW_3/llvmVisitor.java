@@ -529,7 +529,6 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         // Allocation of local variables
         n.f7.accept(this, argu);
 
-        // TODO: Statement expressions
         n.f8.accept(this, new argsObj(argu.className, methId, true, true));
 
         n.f9.accept(this, argu);
@@ -561,6 +560,44 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     }
 
     /**
+    * f0 -> Identifier()
+    * f1 -> "="
+    * f2 -> Expression()
+    * f3 -> ";"
+    */
+    public String visit(AssignmentStatement n, argsObj argu) throws Exception {
+        String _ret = null;
+        String assID = n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+        String regExpr = n.f2.accept(this, argu);
+        n.f3.accept(this, argu);
+
+        if (symbolTable.classes.get(argu.className).classMethods.get(argu.methName).checkVar(assID)) {
+            // Local variable
+            String varType = emitType(
+                    symbolTable.classes.get(argu.className).classMethods.get(argu.methName).varType(assID));
+            emit("\t" + "store " + varType + " " + regExpr + ", " + varType + "* %" + assID + "\n");
+        } else {
+            // Issa field
+            String fieldOffset = getOffset(argu.className, assID);
+            String fieldType = fieldType(argu.className, assID);
+
+            // Getting a pointer to the data field
+            String regGEP = getReg();
+            emit("\t" + regGEP + " = getelementptr i8, i8* %this, i32 " + fieldOffset + "\n");
+
+            // Necessary bitcast
+            String regBC = getReg();
+            emit("\t" + regBC + " = bitcast i8* " + regGEP + " to " + fieldType + "*" + "\n");
+
+            // Store instruction
+            emit("\t" + "store " + fieldType + " " + regExpr + ", " + fieldType + "* " + regBC + "\n");
+        }
+
+        return _ret;
+    }
+
+    /**
     * f0 -> "if"
     * f1 -> "("
     * f2 -> Expression()
@@ -580,7 +617,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         String thenLabel = getLabel();
         String elseLabel = getLabel();
         String endLabel = getLabel();
-        emit("\t" + "br i1 " + icmpReg + ", label %" + thenLabel + ", %" + elseLabel + "\n");
+        emit("\t" + "br i1 " + icmpReg + ", label %" + thenLabel + ", label %" + elseLabel + "\n");
 
         // Then label
         emit("\t" + thenLabel + ":" + "\n");
@@ -930,8 +967,14 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         String _ret = null;
 
         String exprReg = n.f0.accept(this, argu);
-        String regType = regTable.get(exprReg);
-        arguList.add(", " + emitType(regType) + " " + exprReg);
+        try {
+            Integer.parseInt(exprReg);
+            arguList.add(", " + "i32" + " " + exprReg);
+        } catch (NumberFormatException nfe) {
+            // Not a numerical so I use the regTable where the type of the register is stored
+            String regType = regTable.get(exprReg);
+            arguList.add(", " + emitType(regType) + " " + exprReg);
+        }
 
         n.f1.accept(this, argu);
         return _ret;
@@ -947,8 +990,18 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
 
         // Adding the new argument to the end of the previous ones
         String exprReg = n.f1.accept(this, argu);
-        String regType = regTable.get(exprReg);
-        String newExpr = arguList.get(arguIndex) + ", " + emitType(regType) + " " + exprReg;
+        String newExpr;
+        try {
+            // Numerical
+            Integer.parseInt(exprReg);
+            arguList.add(", " + "i32" + " " + exprReg);
+            newExpr = arguList.get(arguIndex) + ", " + "i32" + " " + exprReg;
+        } catch (NumberFormatException nfe) {
+            // Not a numerical so I use the regTable where the type of the register is stored
+            String regType = regTable.get(exprReg);
+            newExpr = arguList.get(arguIndex) + ", " + emitType(regType) + " " + exprReg;
+        }
+
         arguList.set(arguIndex, newExpr);
 
         return _ret;
