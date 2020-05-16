@@ -896,53 +896,106 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
     public String visit(ArrayLookup n, argsObj argu) throws Exception {
         String arrReg = n.f0.accept(this, argu);
 
-        // TODO: Make it work for boolean arrays
+        if (Objects.equals("boolean[]", regTable.get(arrReg))) {
+            // Bitcast the array to get the size
+            String regBC = getReg();
+            emit("\t" + regBC + " = bitcast i8* " + arrReg + " to i32*" + "\n");
 
-        // Loading the size of the array
-        String regArraySize = getReg();
-        emit("\t" + regArraySize + " = load i32, i32* " + arrReg + "\n");
+            // Loading the size of the array
+            String regArraySize = getReg();
+            emit("\t" + regArraySize + " = load i32, i32* " + regBC + "\n");
 
-        n.f1.accept(this, argu);
+            n.f1.accept(this, argu);
+            String sizeReg = n.f2.accept(this, argu);
 
-        String sizeReg = n.f2.accept(this, argu);
+            // Check that the index is legal
+            String regSGE = getReg();
+            emit("\t" + regSGE + " = icmp sge i32 " + sizeReg + ", 0" + "\n");
+            String regSLT = getReg();
+            emit("\t" + regSLT + " = icmp slt i32 " + sizeReg + ", " + regArraySize + "\n");
 
-        // Check that the index is legal
-        String regSGE = getReg();
-        emit("\t" + regSGE + " = icmp sge i32 " + sizeReg + ", 0" + "\n");
-        String regSLT = getReg();
-        emit("\t" + regSLT + " = icmp slt i32 " + sizeReg + ", " + regArraySize + "\n");
+            // Checking that both conditions hold
+            String regAND = getReg();
+            emit("\t" + regAND + " = and i1 " + regSGE + ", " + regSLT + "\n");
+            String labelOK = getLabel();
+            String labelERR = getLabel();
+            emit("\t" + "br i1 " + regAND + ", label %" + labelOK + ", label %" + labelERR + "\n");
 
-        // Checking that both conditions hold
-        String regAND = getReg();
-        emit("\t" + regAND + " = and i1 " + regSGE + ", " + regSLT + "\n");
-        String labelOK = getLabel();
-        String labelERR = getLabel();
-        emit("\t" + "br i1 " + regAND + ", label %" + labelOK + ", label %" + labelERR + "\n");
+            // Throwing OOB exception
+            emit("\t" + labelERR + ":" + "\n");
+            emit("\t" + "call void @throw_oob()" + "\n");
+            emit("\t" + "br label %" + labelOK + "\n\n");
 
-        // Throwing OOB exception
-        emit("\t" + labelERR + ":" + "\n");
-        emit("\t" + "call void @throw_oob()" + "\n");
-        emit("\t" + "br label %" + labelOK + "\n\n");
+            // All ok
+            emit("\t" + labelOK + ":" + "\n");
 
-        // All ok
-        emit("\t" + labelOK + ":" + "\n");
+            // Adding 4 because the first four bytes hold the size of the array
+            String regADD = getReg();
+            emit("\t" + regADD + " = add i32 4, " + sizeReg + "\n");
 
-        // Adding 1 because the first first position holds the size of the array
-        String regADD = getReg();
-        emit("\t" + regADD + " = add i32 1, " + sizeReg + "\n");
+            // Now get a pointer to the correct position
+            String regGEP = getReg();
+            emit("\t" + regGEP + " = getelementptr i8, i8* " + arrReg + ", i32 " + regADD + "\n");
 
-        // Now get a pointer to the correct position
-        String regGEP = getReg();
-        emit("\t" + regGEP + " = getelementptr i32, i32* " + arrReg + ", i32 " + regADD + "\n");
+            // Load the value
+            String regL = getReg();
+            emit("\t" + regL + " = load i8, i8* " + regGEP + "\n");
 
-        // Load and return the register
-        String regL = getReg();
-        emit("\t" + regL + " = load i32, i32* " + regGEP + "\n");
+            // Now trunc the loaded value
+            String regT = getReg();
+            emit("\t" + regT + " = trunc i8 " + regL + " to i1" + "\n");
 
-        n.f3.accept(this, argu);
+            // Now return the trunc register
+            n.f3.accept(this, argu);
 
-        regTable.put(regL, "int[]"); // TODO: boolean fix
-        return regL;
+            regTable.put(regT, "boolean[]");
+            return regT;
+        } else {
+            // Loading the size of the array
+            String regArraySize = getReg();
+            emit("\t" + regArraySize + " = load i32, i32* " + arrReg + "\n");
+
+            n.f1.accept(this, argu);
+            String sizeReg = n.f2.accept(this, argu);
+
+            // Check that the index is legal
+            String regSGE = getReg();
+            emit("\t" + regSGE + " = icmp sge i32 " + sizeReg + ", 0" + "\n");
+            String regSLT = getReg();
+            emit("\t" + regSLT + " = icmp slt i32 " + sizeReg + ", " + regArraySize + "\n");
+
+            // Checking that both conditions hold
+            String regAND = getReg();
+            emit("\t" + regAND + " = and i1 " + regSGE + ", " + regSLT + "\n");
+            String labelOK = getLabel();
+            String labelERR = getLabel();
+            emit("\t" + "br i1 " + regAND + ", label %" + labelOK + ", label %" + labelERR + "\n");
+
+            // Throwing OOB exception
+            emit("\t" + labelERR + ":" + "\n");
+            emit("\t" + "call void @throw_oob()" + "\n");
+            emit("\t" + "br label %" + labelOK + "\n\n");
+
+            // All ok
+            emit("\t" + labelOK + ":" + "\n");
+
+            // Adding 1 because the first position holds the size of the array
+            String regADD = getReg();
+            emit("\t" + regADD + " = add i32 1, " + sizeReg + "\n");
+
+            // Now get a pointer to the correct position
+            String regGEP = getReg();
+            emit("\t" + regGEP + " = getelementptr i32, i32* " + arrReg + ", i32 " + regADD + "\n");
+
+            // Load and return the register
+            String regL = getReg();
+            emit("\t" + regL + " = load i32, i32* " + regGEP + "\n");
+
+            n.f3.accept(this, argu);
+
+            regTable.put(regL, "int[]");
+            return regL;
+        }
     }
 
     /**

@@ -7,8 +7,9 @@ class testF {
 class testFac {
     public int ComputeFac() {
         boolean[] testing;
+        boolean x;
         testing = new boolean[20];
-        // testing[0] = true;
+        x = testing[0];
         return testing.length;
     }
 }
