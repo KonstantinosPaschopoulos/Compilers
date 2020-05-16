@@ -8,8 +8,21 @@ class testFac {
     public int ComputeFac() {
         boolean[] testing;
         boolean x;
-        testing = new boolean[20];
-        x = testing[0];
+        boolean y;
+        testing = new boolean[4];
+        testing[0] = false;
+        testing[1] = true;
+        testing[2] = true;
+        testing[3] = true;
+        x = testing[3];
+        y = testing[1];
+
+        if (x && y) {
+            System.out.println(10);
+        } else {
+            System.out.println(5);
+        }
+
         return testing.length;
     }
 }

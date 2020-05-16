@@ -640,10 +640,23 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
             typeArr = fieldType;
         }
 
-        // TODO fix for bool
         // After loading the array, now load the size of the array
-        String regSize = getReg();
-        emit("\t" + regSize + " = load i32, " + typeArr + " " + regArr + "\n");
+        String regSize;
+        if (Objects.equals("i32*", typeArr)) {
+            // Int array
+            regSize = getReg();
+            emit("\t" + regSize + " = load i32, i32* " + regArr + "\n");
+        } else {
+            // Boolean array
+
+            // Bitcast the array to get the size
+            String regBC = getReg();
+            emit("\t" + regBC + " = bitcast i8* " + regArr + " to i32*" + "\n");
+
+            // Loading the size of the array
+            regSize = getReg();
+            emit("\t" + regSize + " = load i32, i32* " + regBC + "\n");
+        }
 
         n.f1.accept(this, argu);
         String indexReg = n.f2.accept(this, argu);
@@ -669,21 +682,41 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         // All ok
         emit("\t" + labelOK + ":" + "\n");
 
-        // Add 1 to the index
-        String regAdd = getReg();
-        emit("\t" + regAdd + " = add i32 1, " + indexReg + "\n");
+        // Adding bytes to the index to skip the size of the array
+        String regAdd;
+        if (Objects.equals("i32*", typeArr)) {
+            // Add 1 to the index
+            regAdd = getReg();
+            emit("\t" + regAdd + " = add i32 1, " + indexReg + "\n");
+        } else {
+            // Add 4, because it's a boolean array
+            regAdd = getReg();
+            emit("\t" + regAdd + " = add i32 4, " + indexReg + "\n");
+        }
 
         n.f4.accept(this, argu);
         String regExpr = n.f5.accept(this, argu);
         n.f6.accept(this, argu);
 
         // Get the pointer to the correct element
-        // TODO fix the i32 to be also for bool
-        String regGEP = getReg();
-        emit("\t" + regGEP + " = getelementptr " + "i32" + ", " + typeArr + " " + regArr + ", i32 " + regAdd + "\n");
+        if (Objects.equals("i32*", typeArr)) {
+            String regGEP = getReg();
+            emit("\t" + regGEP + " = getelementptr " + "i32" + ", " + typeArr + " " + regArr + ", i32 " + regAdd
+                    + "\n");
 
-        // Store it
-        emit("\t" + "store " + "i32" + " " + regExpr + ", " + typeArr + " " + regGEP + "\n");
+            // Store it
+            emit("\t" + "store " + "i32" + " " + regExpr + ", " + typeArr + " " + regGEP + "\n");
+        } else {
+            String regGEP = getReg();
+            emit("\t" + regGEP + " = getelementptr i8, i8* " + regArr + ", i32 " + regAdd + "\n");
+
+            // Zext instruction before storing it
+            String regZ = getReg();
+            emit("\t" + regZ + " = zext i1 " + regExpr + " to i8" + "\n");
+
+            // Store the zext register
+            emit("\t" + "store i8 " + regZ + ", i8* " + regGEP + "\n");
+        }
 
         return _ret;
     }
