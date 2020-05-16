@@ -956,15 +956,25 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         n.f1.accept(this, argu);
         n.f2.accept(this, argu);
 
-        // TODO: make it work for booleans
+        if (Objects.equals("boolean[]", regTable.get(arrReg))) {
+            // Because it is a boolean array we have to perform a bitcast first
+            String regBC = getReg();
+            emit("\t" + regBC + " = bitcast i8* " + arrReg + " to i32*" + "\n");
 
-        // Since the length of the array has been stored in the first position
-        // It's just a load instruction
-        String regL = getReg();
-        emit("\t" + regL + " = load i32, i32* " + arrReg + "\n");
+            String regL = getReg();
+            emit("\t" + regL + " = load i32, i32* " + regBC + "\n");
 
-        regTable.put(regL, "int");
-        return regL;
+            regTable.put(regL, "int");
+            return regL;
+        } else {
+            // Since the length of the array has been stored in the first position
+            // It's just a load instruction
+            String regL = getReg();
+            emit("\t" + regL + " = load i32, i32* " + arrReg + "\n");
+
+            regTable.put(regL, "int");
+            return regL;
+        }
     }
 
     /**
