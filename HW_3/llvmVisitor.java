@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.StringTokenizer;
+
 import syntaxtree.*;
 import visitor.GJDepthFirst;
 
@@ -502,6 +504,9 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
 
         String retType = n.f1.accept(this, argu);
         String methId = n.f2.accept(this, argu);
+
+        this.regCount = 0;
+        this.labelCount = 0;
 
         // Emiting the function declaration
         emit("define " + emitType(retType) + " @" + argu.className + "." + methId);
@@ -1127,11 +1132,26 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         arguIndex++;
         n.f4.accept(this, argu);
 
+        // PRoblem
         emit("\t" + regCALL + " = call " + emitType(retType) + " " + regBCF + "(i8* " + objReg);
 
         if ((arguIndex + 1) == arguList.size()) {
-            // Emit at once all the arguments that were collected
-            emit(arguList.get(arguIndex));
+            // Creating an ArrayList object to hold the arguments we want to emit
+            ArrayList<String> argList = new ArrayList<String>();
+
+            // Adding all the arguments we have collected to the array
+            StringTokenizer arg = new StringTokenizer(arguList.get(arguIndex), ",");
+            while (arg.hasMoreTokens()) {
+                argList.add(arg.nextToken());
+            }
+
+            // Emit the arguments one by one, emiting the type in the front
+            int index = 0;
+            for (String value : symbolTable.classes.get(regType).classMethods.get(methName).methodParams.values()) {
+                emit(", " + emitType(value) + " " + argList.get(index));
+
+                index++;
+            }
 
             // Remove the last nested function in the argument
             arguList.remove(arguIndex);
@@ -1154,14 +1174,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
         String _ret = null;
 
         String exprReg = n.f0.accept(this, argu);
-        try {
-            Integer.parseInt(exprReg);
-            arguList.add(", " + "i32" + " " + exprReg);
-        } catch (NumberFormatException nfe) {
-            // Not a numerical so I use the regTable where the type of the register is stored
-            String regType = regTable.get(exprReg);
-            arguList.add(", " + emitType(regType) + " " + exprReg);
-        }
+        arguList.add(exprReg);
 
         n.f1.accept(this, argu);
         return _ret;
@@ -1177,17 +1190,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
 
         // Adding the new argument to the end of the previous ones
         String exprReg = n.f1.accept(this, argu);
-        String newExpr;
-        try {
-            // Numerical
-            Integer.parseInt(exprReg);
-            arguList.add(", " + "i32" + " " + exprReg);
-            newExpr = arguList.get(arguIndex) + ", " + "i32" + " " + exprReg;
-        } catch (NumberFormatException nfe) {
-            // Not a numerical so I use the regTable where the type of the register is stored
-            String regType = regTable.get(exprReg);
-            newExpr = arguList.get(arguIndex) + ", " + emitType(regType) + " " + exprReg;
-        }
+        String newExpr = arguList.get(arguIndex) + "," + exprReg;
 
         arguList.set(arguIndex, newExpr);
 
