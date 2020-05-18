@@ -7,7 +7,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringTokenizer;
-
 import syntaxtree.*;
 import visitor.GJDepthFirst;
 
@@ -163,7 +162,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
                 return Integer.toString(offset);
             }
 
-            offset += 8;
+            offset++;
         }
 
         return null;
