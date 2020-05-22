@@ -836,7 +836,7 @@ public class llvmVisitor extends GJDepthFirst<String, argsObj> {
 
         // Short circuit if false
         emit("\t" + labelZero + ":" + "\n");
-        emit("\t" + "br label %" + labelTwo + "\n");
+        emit("\t" + "br label %" + labelThree + "\n");
 
         // If true
         emit("\t" + labelOne + ":" + "\n");
